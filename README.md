@@ -1,5 +1,7 @@
 # 💸 Mis Gastos — Módulo de gestión de gastos personales
 
+Repositorio: https://github.com/kevinsonalo/gastos-app
+
 MVP en **React 19 + TypeScript + Vite** desarrollado para el Objetivo Babel 2026:
 *"Desarrollar competencias en desarrollo web moderno y programación asistida por IA"*.
 
@@ -23,7 +25,7 @@ npm run build      # build de producción en dist/
 npm run lint       # oxlint
 ```
 
-Requiere Node 20+.
+Requiere **Node 20.19+ o 22 LTS** (Vite 8). Con nvm-windows: `nvm install 22 && nvm use 22`.
 
 ## Estructura
 
@@ -41,7 +43,7 @@ src/
 | Documento | Key Result |
 |-----------|-----------|
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — diagrama de componentes, modelo de datos, 8 ADRs, roadmap | KR1 |
-| Este repositorio + historial de commits | KR2 |
+| [github.com/kevinsonalo/gastos-app](https://github.com/kevinsonalo/gastos-app) + historial de commits | KR2 |
 | [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 10+ actividades con Claude | KR3 |
 | [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) — revisión asistida y verificación | KR3 |
 
