@@ -1,4 +1,4 @@
-import type { Category, ExpenseFilters } from '../../domain'
+import { NO_FILTERS, type Category, type ExpenseFilters } from '../../domain'
 
 interface Props {
   filters: ExpenseFilters
@@ -35,7 +35,7 @@ export function FilterBar({ filters, categories, onChange }: Props) {
         onChange={(e) => onChange({ ...filters, search: e.target.value })}
       />
       {(filters.month || filters.categoryId || filters.search) && (
-        <button type="button" onClick={() => onChange({ month: '', categoryId: '', search: '' })}>
+        <button type="button" onClick={() => onChange(NO_FILTERS)}>
           Limpiar
         </button>
       )}

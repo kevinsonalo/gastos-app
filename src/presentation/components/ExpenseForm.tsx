@@ -1,106 +1,54 @@
-import { useEffect, useState, type FormEvent } from 'react'
 import type { Result } from '../../application'
-import { PAYMENT_METHODS, todayISO, type Category, type Expense, type ExpenseInput } from '../../domain'
+import { MAX_DESCRIPTION_LENGTH, PAYMENT_METHODS, type Category, type Expense, type ExpenseInput } from '../../domain'
+import { useExpenseForm, type ExpenseFormValues } from '../hooks/useExpenseForm'
+import { PAYMENT_METHOD_LABELS } from '../labels'
+import { Field } from './Field'
 
 interface Props {
   categories: Category[]
+  /** Gasto en edición o null para alta. Montar con `key` distinta por gasto para reiniciar el formulario. */
   editing: Expense | null
   onSubmit: (input: ExpenseInput) => Result
   onCancelEdit: () => void
 }
 
-interface FormState {
-  amount: string
-  description: string
-  categoryId: string
-  date: string
-  paymentMethod: ExpenseInput['paymentMethod']
-}
-
-const emptyForm = (categories: Category[]): FormState => ({
-  amount: '',
-  description: '',
-  categoryId: categories[0]?.id ?? '',
-  date: todayISO(),
-  paymentMethod: 'card',
-})
-
 export function ExpenseForm({ categories, editing, onSubmit, onCancelEdit }: Props) {
-  const [form, setForm] = useState<FormState>(() => emptyForm(categories))
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [saved, setSaved] = useState(false)
-
-  useEffect(() => {
-    setErrors({})
-    setForm(
-      editing
-        ? { ...editing, amount: String(editing.amount) }
-        : emptyForm(categories),
-    )
-    // Solo reiniciar al cambiar el gasto en edición.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editing])
-
-  // Ocultar el aviso "Guardado" tras 1.5 s, limpiando el timer si el componente se desmonta.
-  useEffect(() => {
-    if (!saved) return
-    const t = setTimeout(() => setSaved(false), 1500)
-    return () => clearTimeout(t)
-  }, [saved])
-
-  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setForm((f) => ({ ...f, [key]: value }))
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    const result = onSubmit({ ...form, amount: form.amount === '' ? NaN : Number(form.amount) })
-    if (!result.ok) {
-      setErrors(result.errors)
-      return
-    }
-    setErrors({})
-    setSaved(true)
-    if (!editing) setForm((f) => ({ ...emptyForm(categories), categoryId: f.categoryId, date: f.date }))
-  }
+  const { values, errors, saved, setField, handleSubmit } = useExpenseForm(categories, editing, onSubmit)
+  const isEditing = editing !== null
 
   return (
     <form className="card form" onSubmit={handleSubmit} noValidate>
-      <h2>{editing ? 'Editar gasto' : 'Nuevo gasto'}</h2>
+      <h2>{isEditing ? 'Editar gasto' : 'Nuevo gasto'}</h2>
 
-      <label>
-        Monto (₡)
+      <Field label="Monto (₡)" error={errors.amount}>
         <input
           type="number"
           inputMode="decimal"
           min="0"
           step="0.01"
-          value={form.amount}
-          onChange={(e) => set('amount', e.target.value)}
+          value={values.amount}
+          onChange={(e) => setField('amount', e.target.value)}
           aria-invalid={!!errors.amount}
           autoFocus
         />
-        {errors.amount && <span className="error">{errors.amount}</span>}
-      </label>
+      </Field>
 
-      <label>
-        Descripción
+      <Field label="Descripción" error={errors.description}>
         <input
           type="text"
-          maxLength={120}
-          value={form.description}
-          onChange={(e) => set('description', e.target.value)}
+          maxLength={MAX_DESCRIPTION_LENGTH}
+          value={values.description}
+          onChange={(e) => setField('description', e.target.value)}
           placeholder="Ej. Almuerzo, gasolina…"
           aria-invalid={!!errors.description}
         />
-        {errors.description && <span className="error">{errors.description}</span>}
-      </label>
+      </Field>
 
       <div className="row">
-        <label>
-          Categoría
+        <Field label="Categoría" error={errors.categoryId}>
           <select
-            value={form.categoryId}
-            onChange={(e) => set('categoryId', e.target.value)}
+            value={values.categoryId}
+            onChange={(e) => setField('categoryId', e.target.value)}
             aria-invalid={!!errors.categoryId}
           >
             {categories.map((c) => (
@@ -109,40 +57,36 @@ export function ExpenseForm({ categories, editing, onSubmit, onCancelEdit }: Pro
               </option>
             ))}
           </select>
-          {errors.categoryId && <span className="error">{errors.categoryId}</span>}
-        </label>
+        </Field>
 
-        <label>
-          Fecha
+        <Field label="Fecha" error={errors.date}>
           <input
             type="date"
-            value={form.date}
-            onChange={(e) => set('date', e.target.value)}
+            value={values.date}
+            onChange={(e) => setField('date', e.target.value)}
             aria-invalid={!!errors.date}
           />
-          {errors.date && <span className="error">{errors.date}</span>}
-        </label>
+        </Field>
       </div>
 
-      <label>
-        Método de pago
+      <Field label="Método de pago" error={errors.paymentMethod}>
         <select
-          value={form.paymentMethod}
-          onChange={(e) => set('paymentMethod', e.target.value as FormState['paymentMethod'])}
+          value={values.paymentMethod}
+          onChange={(e) => setField('paymentMethod', e.target.value as ExpenseFormValues['paymentMethod'])}
         >
-          {PAYMENT_METHODS.map((p) => (
-            <option key={p.value} value={p.value}>
-              {p.label}
+          {PAYMENT_METHODS.map((method) => (
+            <option key={method} value={method}>
+              {PAYMENT_METHOD_LABELS[method]}
             </option>
           ))}
         </select>
-      </label>
+      </Field>
 
       <div className="actions">
         <button type="submit" className="primary">
-          {editing ? 'Guardar cambios' : 'Agregar gasto'}
+          {isEditing ? 'Guardar cambios' : 'Agregar gasto'}
         </button>
-        {editing && (
+        {isEditing && (
           <button type="button" onClick={onCancelEdit}>
             Cancelar
           </button>

@@ -31,7 +31,7 @@ export function validateExpense(
 
   if (!isValidISODate(input.date)) errors.date = 'Fecha inválida.'
 
-  if (!PAYMENT_METHODS.some((p) => p.value === input.paymentMethod)) {
+  if (!PAYMENT_METHODS.includes(input.paymentMethod)) {
     errors.paymentMethod = 'Método de pago inválido.'
   }
 

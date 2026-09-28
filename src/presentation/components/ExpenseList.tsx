@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import {
-  PAYMENT_METHODS,
   filterExpenses,
   sortExpenses,
   total,
@@ -9,6 +8,7 @@ import {
   type ExpenseFilters,
 } from '../../domain'
 import { formatCurrency, formatDate } from '../format'
+import { PAYMENT_METHOD_LABELS } from '../labels'
 import { FilterBar } from './FilterBar'
 
 interface Props {
@@ -20,8 +20,6 @@ interface Props {
   onEdit: (expense: Expense) => void
   onDelete: (id: string) => void
 }
-
-const paymentLabel = (value: string) => PAYMENT_METHODS.find((p) => p.value === value)?.label ?? value
 
 export function ExpenseList({ expenses, categories, filters, editingId, onFiltersChange, onEdit, onDelete }: Props) {
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
@@ -55,7 +53,7 @@ export function ExpenseList({ expenses, categories, filters, editingId, onFilter
                 <div className="expense-main">
                   <span className="desc">{e.description}</span>
                   <span className="meta">
-                    {formatDate(e.date)} · {cat?.name ?? 'Sin categoría'} · {paymentLabel(e.paymentMethod)}
+                    {formatDate(e.date)} · {cat?.name ?? 'Sin categoría'} · {PAYMENT_METHOD_LABELS[e.paymentMethod]}
                   </span>
                 </div>
                 <span className="amount">{formatCurrency(e.amount)}</span>

@@ -12,6 +12,10 @@ export type Decision = { ok: true; action: StoreAction } | Failure
 
 export const OK: Result = { ok: true }
 
-export const fail = (errors: object): Failure => ({ ok: false, errors: errors as Errors })
+/** Convierte un mapa de errores de validación (campos opcionales) en un Failure. */
+export const fail = (errors: Partial<Record<string, string>>): Failure => ({
+  ok: false,
+  errors: Object.fromEntries(Object.entries(errors).filter(([, v]) => v !== undefined)) as Errors,
+})
 
 export const accept = (action: StoreAction): Decision => ({ ok: true, action })

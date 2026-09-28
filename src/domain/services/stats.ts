@@ -1,8 +1,19 @@
 import type { Category } from '../entities/category'
-import type { Expense, ExpenseFilters } from '../entities/expense'
+import type { Expense } from '../entities/expense'
 import { daysInMonth, lastMonths } from '../shared/dates'
 import { roundMoney } from '../shared/money'
 
+/** Criterios de consulta de la lista de gastos (vacío = sin filtrar). */
+export interface ExpenseFilters {
+  /** YYYY-MM o '' para todos los meses */
+  month: string
+  categoryId: string
+  search: string
+}
+
+export const NO_FILTERS: ExpenseFilters = { month: '', categoryId: '', search: '' }
+
+/** Aplica los filtros de mes, categoría y texto (sin distinguir mayúsculas). */
 export function filterExpenses(expenses: Expense[], filters: ExpenseFilters): Expense[] {
   const term = filters.search.trim().toLowerCase()
   return expenses.filter(
@@ -20,6 +31,7 @@ export function sortExpenses(expenses: Expense[]): Expense[] {
   )
 }
 
+/** Suma de montos redondeada a 2 decimales. */
 export function total(expenses: Expense[]): number {
   return roundMoney(expenses.reduce((sum, e) => sum + e.amount, 0))
 }
@@ -32,6 +44,7 @@ export interface CategoryTotal {
   percentage: number
 }
 
+/** Totales por categoría, ordenados de mayor a menor; omite categorías sin gastos. */
 export function totalsByCategory(expenses: Expense[], categories: Category[]): CategoryTotal[] {
   const grand = total(expenses)
   const map = new Map<string, { total: number; count: number }>()
@@ -60,6 +73,7 @@ export interface MonthTotal {
   total: number
 }
 
+/** Total por mes de los últimos `count` meses hasta `endMonth` (meses sin gastos = 0). */
 export function monthlyTrend(expenses: Expense[], endMonth: string, count = 6): MonthTotal[] {
   const months = lastMonths(endMonth, count)
   const map = new Map<string, number>(months.map((m) => [m, 0]))
@@ -79,6 +93,7 @@ export interface MonthSummary {
   changeVsPrevious: number | null
 }
 
+/** Indicadores del dashboard para un mes (YYYY-MM) a la fecha `today` (YYYY-MM-DD). */
 export function monthSummary(
   expenses: Expense[],
   categories: Category[],

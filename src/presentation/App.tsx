@@ -5,7 +5,7 @@ import { Dashboard } from './components/Dashboard'
 import { ExpenseForm } from './components/ExpenseForm'
 import { ExpenseList } from './components/ExpenseList'
 import type { AppDependencies } from '../application'
-import { currentMonth, type Expense, type ExpenseFilters, type ExpenseInput } from '../domain'
+import { NO_FILTERS, currentMonth, type Expense, type ExpenseFilters, type ExpenseInput } from '../domain'
 import { useExpenseStore } from './hooks/useExpenseStore'
 
 type Tab = 'dashboard' | 'expenses' | 'categories'
@@ -24,7 +24,7 @@ export default function App({ deps }: Props) {
   const store = useExpenseStore(deps)
   const [tab, setTab] = useState<Tab>('dashboard')
   const [editing, setEditing] = useState<Expense | null>(null)
-  const [filters, setFilters] = useState<ExpenseFilters>({ month: currentMonth(), categoryId: '', search: '' })
+  const [filters, setFilters] = useState<ExpenseFilters>({ ...NO_FILTERS, month: currentMonth() })
 
   const handleSubmit = (input: ExpenseInput) => {
     if (!editing) return store.addExpense(input)
@@ -65,6 +65,7 @@ export default function App({ deps }: Props) {
         {tab === 'expenses' && (
           <div className="expenses-layout">
             <ExpenseForm
+              key={editing?.id ?? 'new'}
               categories={store.categories}
               editing={editing}
               onSubmit={handleSubmit}

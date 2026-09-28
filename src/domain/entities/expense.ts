@@ -1,11 +1,9 @@
-export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'sinpe'
+/** Métodos de pago válidos. Las etiquetas visibles viven en `presentation/labels.ts`. */
+export const PAYMENT_METHODS = ['card', 'cash', 'sinpe', 'transfer'] as const
 
-export const PAYMENT_METHODS: ReadonlyArray<{ value: PaymentMethod; label: string }> = [
-  { value: 'card', label: 'Tarjeta' },
-  { value: 'cash', label: 'Efectivo' },
-  { value: 'sinpe', label: 'SINPE Móvil' },
-  { value: 'transfer', label: 'Transferencia' },
-]
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
+
+export const DEFAULT_PAYMENT_METHOD: PaymentMethod = 'card'
 
 export interface Expense {
   id: string
@@ -20,10 +18,3 @@ export interface Expense {
 }
 
 export type ExpenseInput = Pick<Expense, 'amount' | 'description' | 'categoryId' | 'date' | 'paymentMethod'>
-
-export interface ExpenseFilters {
-  /** YYYY-MM o '' para todos los meses */
-  month: string
-  categoryId: string
-  search: string
-}
