@@ -1,3 +1,5 @@
+// Formato para mostrar en pantalla (locale es-CR, ADR-006). No es lógica de negocio.
+
 const crc = new Intl.NumberFormat('es-CR', {
   style: 'currency',
   currency: 'CRC',
@@ -17,6 +19,13 @@ export function formatDate(isoDate: string): string {
   })
 }
 
-export function roundMoney(value: number): number {
-  return Math.round(value * 100) / 100
+const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
+export function monthLabel(month: string, long = false): string {
+  const [y, m] = month.split('-').map(Number)
+  if (long) {
+    const text = new Date(y, m - 1, 1).toLocaleDateString('es-CR', { month: 'long', year: 'numeric' })
+    return text.charAt(0).toUpperCase() + text.slice(1)
+  }
+  return `${MONTHS_ES[m - 1]} ${String(y).slice(2)}`
 }

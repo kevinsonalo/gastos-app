@@ -1,4 +1,4 @@
-import type { Category, ExpenseFilters } from '../domain/types'
+import type { Category, ExpenseFilters } from '../../domain'
 
 interface Props {
   filters: ExpenseFilters

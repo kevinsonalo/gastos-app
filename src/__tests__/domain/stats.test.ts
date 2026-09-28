@@ -1,7 +1,29 @@
 import { describe, expect, it } from 'vitest'
-import { lastMonths } from '../domain/dates'
-import { filterExpenses, monthSummary, monthlyTrend, sortExpenses, total, totalsByCategory } from '../domain/stats'
-import { cats, exp } from './fixtures'
+import {
+  filterExpenses,
+  lastMonths,
+  monthSummary,
+  monthlyTrend,
+  sortExpenses,
+  total,
+  roundMoney,
+  totalsByCategory,
+} from '../../domain'
+import { cats, exp } from '../fixtures'
+
+describe('roundMoney', () => {
+  it.each([
+    [2500.555, 2500.56],
+    [1.005, 1.01],
+    [1.255, 1.26],
+    [10.555, 10.56],
+    [0.1 + 0.2, 0.3],
+    [1234567.891, 1234567.89],
+    [1e-7, 0],
+  ])('redondea %s a %s (half-up en decimal)', (value, expected) => {
+    expect(roundMoney(value)).toBe(expected)
+  })
+})
 
 describe('total', () => {
   it('suma evitando errores de punto flotante', () => {
@@ -89,13 +111,5 @@ describe('monthSummary', () => {
 
   it('changeVsPrevious es null si el mes anterior no tiene gastos', () => {
     expect(monthSummary(data, cats, '2026-08', '2026-09-10').changeVsPrevious).toBeNull()
-  })
-})
-
-describe('monthLabel', () => {
-  it('capitaliza solo la primera letra del mes largo', async () => {
-    const { monthLabel } = await import('../domain/dates')
-    expect(monthLabel('2026-09', true)).toMatch(/^Septiembre/)
-    expect(monthLabel('2026-09')).toBe('Sep 26')
   })
 })

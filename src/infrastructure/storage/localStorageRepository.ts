@@ -1,4 +1,5 @@
-import type { KeyValueStorage, Repository } from './repository'
+import type { Repository } from '../../application'
+import type { KeyValueStorage } from './keyValueStorage'
 
 export class LocalStorageRepository<T> implements Repository<T> {
   private readonly key: string
@@ -29,27 +30,5 @@ export class LocalStorageRepository<T> implements Repository<T> {
     } catch (err) {
       console.error(`No se pudo guardar "${this.key}"`, err)
     }
-  }
-}
-
-/** Storage en memoria: usado en pruebas y cuando localStorage no está disponible. */
-export class MemoryStorage implements KeyValueStorage {
-  private data = new Map<string, string>()
-  getItem(key: string) {
-    return this.data.get(key) ?? null
-  }
-  setItem(key: string, value: string) {
-    this.data.set(key, value)
-  }
-}
-
-export function browserStorage(): KeyValueStorage {
-  try {
-    const probe = '__gastos_probe__'
-    window.localStorage.setItem(probe, probe)
-    window.localStorage.removeItem(probe)
-    return window.localStorage
-  } catch {
-    return new MemoryStorage()
   }
 }

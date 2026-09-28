@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import type { Category, CategoryInput, Expense } from '../domain/types'
-import type { Result } from '../hooks/useExpenseStore'
+import type { Result } from '../../application'
+import { countExpensesInCategory, type Category, type CategoryInput, type Expense } from '../../domain'
 
 interface Props {
   categories: Category[]
@@ -18,7 +18,7 @@ export function CategoryManager({ categories, expenses, onAdd, onUpdate, onDelet
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
-  const usage = (id: string) => expenses.filter((e) => e.categoryId === id).length
+  const usage = (id: string) => countExpensesInCategory(expenses, id)
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()

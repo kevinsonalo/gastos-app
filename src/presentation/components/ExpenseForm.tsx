@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { todayISO } from '../domain/dates'
-import { PAYMENT_METHODS, type Category, type Expense, type ExpenseInput } from '../domain/types'
-import type { Result } from '../hooks/useExpenseStore'
+import type { Result } from '../../application'
+import { PAYMENT_METHODS, todayISO, type Category, type Expense, type ExpenseInput } from '../../domain'
 
 interface Props {
   categories: Category[]

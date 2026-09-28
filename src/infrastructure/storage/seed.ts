@@ -1,4 +1,4 @@
-import type { Category } from '../domain/types'
+import type { Category } from '../../domain'
 
 const SEED: Array<[string, string]> = [
   ['Alimentación', '#e07a5f'],

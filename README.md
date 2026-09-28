@@ -20,7 +20,7 @@ MVP en **React 19 + TypeScript + Vite** desarrollado para el Objetivo Babel 2026
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # 38 pruebas unitarias (Vitest)
+npm test           # 53 pruebas unitarias (Vitest)
 npm run build      # build de producción en dist/
 npm run lint       # oxlint
 ```
@@ -29,13 +29,16 @@ Requiere **Node 20.19+ o 22 LTS** (Vite 8). Con nvm-windows: `nvm install 22 && 
 
 ## Estructura
 
+Clean Architecture en cuatro capas (detalle en [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md), ADR-009):
+
 ```
 src/
-├── domain/       # tipos, validación, estadísticas, fechas, formato (puro, testeado)
-├── data/         # Repository<T>, LocalStorageRepository, seed
-├── hooks/        # useExpenseStore (useReducer + persistencia), backup
-├── components/   # Dashboard, ExpenseForm, ExpenseList, FilterBar, CategoryManager, BackupControls
-└── __tests__/    # Vitest
+├── domain/          # entidades, reglas de negocio, estadísticas (puro, sin React)
+├── application/     # casos de uso puros, reducer y puertos (Repository, IdGenerator, Clock)
+├── infrastructure/  # adaptadores: localStorage, crypto, reloj + createDependencies()
+├── presentation/    # React: componentes, useExpenseStore, formato es-CR
+├── __tests__/       # Vitest, espejo por capa + prueba de arquitectura
+└── main.tsx         # composition root
 ```
 
 ## Documentación (evidencias)

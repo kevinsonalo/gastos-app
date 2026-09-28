@@ -1,4 +1,4 @@
-import type { Category, Expense } from '../domain/types'
+import type { Category, Expense } from '../domain'
 
 export const cats: Category[] = [
   { id: 'food', name: 'Alimentación', color: '#ff0000', createdAt: '' },

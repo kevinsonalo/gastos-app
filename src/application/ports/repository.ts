@@ -1,13 +1,15 @@
+import type { Category, Expense } from '../../domain'
+
 /**
- * Abstracción de persistencia (ADR-002). Una futura HttpRepository
- * implementará esta misma interfaz contra la API .NET.
+ * Puerto de persistencia (ADR-002). La infraestructura lo implementa
+ * (hoy LocalStorageRepository; en fase 2, un HttpRepository contra la API .NET).
  */
 export interface Repository<T> {
   getAll(): T[]
   saveAll(items: T[]): void
 }
 
-export interface KeyValueStorage {
-  getItem(key: string): string | null
-  setItem(key: string, value: string): void
+export interface Repositories {
+  categories: Repository<Category>
+  expenses: Repository<Expense>
 }

@@ -1,7 +1,14 @@
 import { useMemo } from 'react'
-import { formatCurrency, formatDate } from '../domain/format'
-import { filterExpenses, sortExpenses, total } from '../domain/stats'
-import { PAYMENT_METHODS, type Category, type Expense, type ExpenseFilters } from '../domain/types'
+import {
+  PAYMENT_METHODS,
+  filterExpenses,
+  sortExpenses,
+  total,
+  type Category,
+  type Expense,
+  type ExpenseFilters,
+} from '../../domain'
+import { formatCurrency, formatDate } from '../format'
 import { FilterBar } from './FilterBar'
 
 interface Props {

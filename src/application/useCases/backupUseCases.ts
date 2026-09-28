@@ -1,5 +1,9 @@
-import type { Category, Expense } from '../domain/types'
-import type { StoreState } from './expenseReducer'
+import type { Category, Expense } from '../../domain'
+import type { Clock } from '../ports/system'
+import { accept, fail, type Decision } from '../result'
+import type { StoreState } from '../state/storeReducer'
+
+export const BACKUP_VERSION = 1
 
 type ParseResult = { ok: true; state: StoreState } | { ok: false; error: string }
 
@@ -39,4 +43,14 @@ export function parseBackup(json: string): ParseResult {
     return { ok: false, error: 'Hay gastos con categorías inexistentes.' }
   }
   return { ok: true, state: { categories: data.categories, expenses: data.expenses } }
+}
+
+export function importBackup(json: string): Decision {
+  const parsed = parseBackup(json)
+  if (!parsed.ok) return fail({ file: parsed.error })
+  return accept({ type: 'store/replace', state: parsed.state })
+}
+
+export function exportBackup(state: StoreState, clock: Clock): string {
+  return JSON.stringify({ version: BACKUP_VERSION, exportedAt: clock.now(), ...state }, null, 2)
 }

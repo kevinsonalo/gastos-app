@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { ExpenseInput } from '../domain/types'
-import { hasErrors, validateCategory, validateExpense } from '../domain/validation'
-import { cats } from './fixtures'
+import { hasErrors, validateCategory, validateExpense, type ExpenseInput } from '../../domain'
+import { cats } from '../fixtures'
 
 const valid: ExpenseInput = {
   amount: 2500,

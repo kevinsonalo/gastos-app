@@ -22,51 +22,70 @@
 - **Vitest** para pruebas unitarias
 - **CSS plano** con variables (sin librería de UI) y gráficos en SVG/CSS propios → cero dependencias de runtime aparte de React.
 
-## 3. Diagrama de componentes
+
+## 3. Arquitectura en capas
+
+La app sigue **Clean Architecture** en cuatro capas. Las dependencias apuntan siempre hacia el dominio:
 
 ```mermaid
 flowchart TD
-    subgraph UI["Capa de presentación (components/)"]
-        App[App.tsx<br/>Shell + navegación por pestañas]
-        Dash[Dashboard]
-        SC[SummaryCards]
-        CC[CategoryChart]
-        MT[MonthlyTrend]
-        EF[ExpenseForm]
-        EL[ExpenseList]
-        FB[FilterBar]
-        CM[CategoryManager]
+    Main["main.tsx<br/>composition root"]
+
+    subgraph P["presentation/ (React)"]
+        App[App.tsx]
+        Comp[components/*]
+        Hook[hooks/useExpenseStore<br/>adaptador React]
+        Fmt[format.ts]
     end
 
-    subgraph State["Estado (hooks/)"]
-        Store[useExpenseStore<br/>useReducer + efectos de persistencia]
+    subgraph A["application/"]
+        UC[useCases/*<br/>expense · category · backup]
+        St[state/storeReducer]
+        Ports[ports/*<br/>Repository · IdGenerator · Clock]
     end
 
-    subgraph Domain["Dominio puro (domain/)"]
-        T[types.ts]
-        V[validation.ts]
-        S[stats.ts]
-        F[format.ts]
+    subgraph D["domain/ (puro)"]
+        Ent[entities/*]
+        Rules[rules/*<br/>validación + normalización]
+        Svc[services/stats]
+        Sh[shared/*<br/>dates · money · validation]
     end
 
-    subgraph Data["Acceso a datos (data/)"]
-        R[Repository&lt;T&gt; interfaz]
-        LSR[LocalStorageRepository]
-        Seed[seed.ts categorías por defecto]
+    subgraph I["infrastructure/"]
+        LSR[storage/LocalStorageRepository]
+        Sys[system/ cryptoIdGenerator · systemClock]
+        Cont[container.ts<br/>createDependencies]
     end
 
-    App --> Dash & EF & EL & FB & CM
-    Dash --> SC & CC & MT
-    App --> Store
-    Store --> V & S
-    Store --> R
-    R --> LSR
-    LSR --> Seed
-    Dash --> S
-    EL --> F
+    Main --> Cont & App
+    App --> Comp & Hook
+    Comp --> Fmt
+    Hook --> UC & St
+    Comp --> D
+    UC --> Rules & Ports & St
+    Rules --> Ent & Sh
+    Svc --> Ent & Sh
+    LSR -. implementa .-> Ports
+    Sys -. implementa .-> Ports
+    Cont --> LSR & Sys
 ```
 
-**Regla de dependencias** (inspirada en Clean Architecture): `components → hooks → domain`, y `hooks → data`. El dominio no conoce React ni el almacenamiento; se prueba sin DOM.
+| Capa | Responsabilidad | Puede importar de |
+|------|-----------------|-------------------|
+| `domain/` | Entidades, reglas de negocio (validación, normalización, ADR-008), estadísticas, fechas y dinero. Sin React ni I/O. | `domain` |
+| `application/` | Casos de uso puros, reducer del estado y **puertos** (interfaces) hacia el exterior. | `domain` |
+| `infrastructure/` | Adaptadores que implementan los puertos (`localStorage`, `crypto.randomUUID`, reloj) y `createDependencies()`. | `domain`, `application` |
+| `presentation/` | React: componentes, hook adaptador y formato para pantalla (`es-CR`). | `domain`, `application` |
+| `main.tsx` | Composition root: crea las dependencias concretas y las inyecta en `<App>`. | todo |
+
+La regla se verifica automáticamente en `src/__tests__/architecture.test.ts`.
+
+### Flujo de un comando
+
+1. Un componente llama, p. ej., `store.addExpense(input)`.
+2. `useExpenseStore` invoca el caso de uso puro `addExpense(state, input, { ids, clock })`.
+3. El caso de uso valida y normaliza con reglas de dominio y devuelve una **decisión**: `{ ok: false, errors }` o `{ ok: true, action }` con la entidad ya construida.
+4. Si es válida, el hook despacha la acción al `storeReducer` (que solo aplica cambios) y la persistencia ocurre en efectos que llaman a `Repository.saveAll`.
 
 ## 4. Modelo de datos
 
@@ -131,16 +150,39 @@ Almacenamiento: dos claves en `localStorage`, versionadas:
 ### ADR-008 · Integridad referencial al eliminar categorías
 - **Decisión:** No se permite eliminar una categoría con gastos asociados; el usuario debe reasignarlos primero.
 
+
+### ADR-009 · Clean Architecture en cuatro capas con casos de uso puros
+- **Contexto:** El hook `useExpenseStore` mezclaba React, validación, generación de ids/fechas y reglas de negocio; el puerto `Repository` vivía junto a su implementación.
+- **Decisión:** Separar `domain / application / infrastructure / presentation`. Los casos de uso son funciones puras que reciben el estado y los servicios (`IdGenerator`, `Clock`) inyectados y devuelven una acción; los puertos viven en `application/ports`; `main.tsx` es el único composition root.
+- **Consecuencias:** + Casos de uso probables sin React ni mocks de tiempo; + migrar a `HttpRepository` (fase 2) solo toca `infrastructure/`; + la regla de dependencias está cubierta por una prueba. − Más archivos y un nivel extra de indirección para una app pequeña.
+
 ## 6. Estructura de carpetas
 
 ```
 src/
-├── domain/        # tipos, validación, estadísticas, formato (puro, testeado)
-├── data/          # Repository<T>, LocalStorageRepository, seed
-├── hooks/         # useExpenseStore (reducer + persistencia)
-├── components/    # UI
-├── App.tsx
-└── main.tsx
+├── domain/                 # Núcleo puro: sin React ni I/O
+│   ├── entities/           # Expense, Category, PAYMENT_METHODS
+│   ├── rules/              # validar/normalizar gastos y categorías, ADR-008
+│   ├── services/           # stats: filtros, totales, tendencia, resumen mensual
+│   ├── shared/             # dates, money, validation
+│   └── index.ts            # API pública de la capa
+├── application/
+│   ├── ports/              # Repository<T>, IdGenerator, Clock, AppDependencies
+│   ├── state/              # StoreState, StoreAction, storeReducer, loadState
+│   ├── useCases/           # expense, category, backup (funciones puras)
+│   ├── result.ts           # Result / Decision
+│   └── index.ts
+├── infrastructure/
+│   ├── storage/            # LocalStorageRepository, KeyValueStorage, seed
+│   ├── system/             # cryptoIdGenerator, systemClock
+│   └── container.ts        # createDependencies() / createRepositories()
+├── presentation/
+│   ├── components/         # UI
+│   ├── hooks/              # useExpenseStore (adaptador React)
+│   ├── format.ts           # moneda, fechas y etiquetas es-CR
+│   └── App.tsx
+├── __tests__/              # espejo por capa + architecture.test.ts
+└── main.tsx                # composition root
 ```
 
 ## 7. Roadmap (fase 2)

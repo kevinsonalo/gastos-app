@@ -1,75 +1,49 @@
-import { roundMoney } from '../domain/format'
-import type { Category, CategoryInput, Expense, ExpenseInput } from '../domain/types'
+import { countExpensesInCategory, type Category, type Expense } from '../../domain'
+import type { Repositories } from '../ports/repository'
 
 export interface StoreState {
   expenses: Expense[]
   categories: Category[]
 }
 
+/** Las acciones llevan entidades ya validadas y normalizadas por los casos de uso. */
 export type StoreAction =
-  | { type: 'expense/add'; id: string; now: string; input: ExpenseInput }
-  | { type: 'expense/update'; id: string; now: string; input: ExpenseInput }
+  | { type: 'expense/add'; expense: Expense }
+  | { type: 'expense/update'; expense: Expense }
   | { type: 'expense/delete'; id: string }
-  | { type: 'category/add'; id: string; now: string; input: CategoryInput }
-  | { type: 'category/update'; id: string; input: CategoryInput }
+  | { type: 'category/add'; category: Category }
+  | { type: 'category/update'; category: Category }
   | { type: 'category/delete'; id: string }
   | { type: 'store/replace'; state: StoreState }
 
-const normalizeExpense = (input: ExpenseInput): ExpenseInput => ({
-  ...input,
-  amount: roundMoney(input.amount),
-  description: input.description.trim(),
-})
+const replaceById = <T extends { id: string }>(items: T[], item: T): T[] =>
+  items.map((current) => (current.id === item.id ? item : current))
 
-const normalizeCategory = (input: CategoryInput): CategoryInput => ({
-  name: input.name.trim(),
-  color: input.color.toLowerCase(),
-})
-
-/** Reducer puro (ADR-003). La validación ocurre antes de despachar. */
-export function expenseReducer(state: StoreState, action: StoreAction): StoreState {
+/** Reducer puro (ADR-003): solo aplica cambios, no valida ni genera ids/fechas. */
+export function storeReducer(state: StoreState, action: StoreAction): StoreState {
   switch (action.type) {
     case 'expense/add':
-      return {
-        ...state,
-        expenses: [
-          ...state.expenses,
-          { id: action.id, ...normalizeExpense(action.input), createdAt: action.now, updatedAt: action.now },
-        ],
-      }
+      return { ...state, expenses: [...state.expenses, action.expense] }
     case 'expense/update':
-      return {
-        ...state,
-        expenses: state.expenses.map((e) =>
-          e.id === action.id ? { ...e, ...normalizeExpense(action.input), updatedAt: action.now } : e,
-        ),
-      }
+      return { ...state, expenses: replaceById(state.expenses, action.expense) }
     case 'expense/delete':
       return { ...state, expenses: state.expenses.filter((e) => e.id !== action.id) }
     case 'category/add':
-      return {
-        ...state,
-        categories: [
-          ...state.categories,
-          { id: action.id, ...normalizeCategory(action.input), createdAt: action.now },
-        ],
-      }
+      return { ...state, categories: [...state.categories, action.category] }
     case 'category/update':
-      return {
-        ...state,
-        categories: state.categories.map((c) =>
-          c.id === action.id ? { ...c, ...normalizeCategory(action.input) } : c,
-        ),
-      }
+      return { ...state, categories: replaceById(state.categories, action.category) }
     case 'category/delete':
-      // ADR-008: no eliminar categorías en uso.
-      if (state.expenses.some((e) => e.categoryId === action.id)) return state
+      // Defensa en profundidad de ADR-008 (el caso de uso ya lo valida).
+      if (countExpensesInCategory(state.expenses, action.id) > 0) return state
       return { ...state, categories: state.categories.filter((c) => c.id !== action.id) }
     case 'store/replace':
       return action.state
   }
 }
 
-export function categoryInUse(state: StoreState, categoryId: string): number {
-  return state.expenses.filter((e) => e.categoryId === categoryId).length
+export function loadState(repositories: Repositories): StoreState {
+  return {
+    categories: repositories.categories.getAll(),
+    expenses: repositories.expenses.getAll(),
+  }
 }

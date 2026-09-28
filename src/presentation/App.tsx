@@ -4,8 +4,8 @@ import { CategoryManager } from './components/CategoryManager'
 import { Dashboard } from './components/Dashboard'
 import { ExpenseForm } from './components/ExpenseForm'
 import { ExpenseList } from './components/ExpenseList'
-import { currentMonth } from './domain/dates'
-import type { Expense, ExpenseFilters, ExpenseInput } from './domain/types'
+import type { AppDependencies } from '../application'
+import { currentMonth, type Expense, type ExpenseFilters, type ExpenseInput } from '../domain'
 import { useExpenseStore } from './hooks/useExpenseStore'
 
 type Tab = 'dashboard' | 'expenses' | 'categories'
@@ -16,8 +16,12 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'categories', label: 'Categorías' },
 ]
 
-export default function App() {
-  const store = useExpenseStore()
+interface Props {
+  deps: AppDependencies
+}
+
+export default function App({ deps }: Props) {
+  const store = useExpenseStore(deps)
   const [tab, setTab] = useState<Tab>('dashboard')
   const [editing, setEditing] = useState<Expense | null>(null)
   const [filters, setFilters] = useState<ExpenseFilters>({ month: currentMonth(), categoryId: '', search: '' })

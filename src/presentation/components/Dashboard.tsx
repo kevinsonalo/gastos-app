@@ -1,8 +1,14 @@
 import { useMemo, useState } from 'react'
-import { currentMonth, monthLabel, todayISO } from '../domain/dates'
-import { formatCurrency } from '../domain/format'
-import { monthSummary, monthlyTrend, totalsByCategory } from '../domain/stats'
-import type { Category, Expense } from '../domain/types'
+import {
+  currentMonth,
+  monthSummary,
+  monthlyTrend,
+  todayISO,
+  totalsByCategory,
+  type Category,
+  type Expense,
+} from '../../domain'
+import { formatCurrency, monthLabel } from '../format'
 
 interface Props {
   expenses: Expense[]
