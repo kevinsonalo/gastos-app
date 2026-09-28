@@ -4,7 +4,8 @@
     <ProjectReference Include="..\Gastos.Application\Gastos.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <!-- 10.0.*: último parche de servicio de .NET 10 (la 10.0.0 arrastra dependencias con vulnerabilidades conocidas). -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.*" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Gastos.IntegrationTests" />

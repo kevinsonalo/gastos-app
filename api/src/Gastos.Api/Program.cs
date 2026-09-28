@@ -28,7 +28,15 @@ builder.Services.AddOpenApi();
 const string FrontendCors = "frontend";
 var allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:5173"];
 builder.Services.AddCors(options => options.AddPolicy(FrontendCors, policy =>
-    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
+{
+    if (builder.Environment.IsDevelopment())
+        // Vite usa 5174, 5175… si el puerto 5173 está ocupado: se acepta cualquier puerto de localhost.
+        policy.SetIsOriginAllowed(origin => Uri.TryCreate(origin, UriKind.Absolute, out var uri) && uri.IsLoopback);
+    else
+        policy.WithOrigins(allowedOrigins);
+
+    policy.AllowAnyHeader().AllowAnyMethod();
+}));
 
 var app = builder.Build();
 
