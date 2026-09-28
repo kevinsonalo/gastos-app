@@ -29,6 +29,7 @@
 | 17 | Documentación de mejores prácticas de prompts | `MEJORES_PRACTICAS_PROMPTS.md` | Revisión propia |
 | 18 | Refactor a Clean Architecture con Claude Code en VS Code | Commit `main update structure`, ADR-009, `architecture.test.ts` | 60 pruebas, build y lint en verde |
 | 19 | Revisión de estructura, patrones y mantenibilidad | `GUIA_BUENAS_PRACTICAS.md`, ADR-010, `CODE_REVIEW.md` #9–15 | 62 pruebas + E2E |
+| 20 | Backend .NET 10 y conexión del frontend (prueba de datos) | `api/`, ADR-011, `HttpGateway` | 28 pruebas unitarias C#, 77 Vitest, E2E React ↔ API |
 
 ---
 
@@ -116,6 +117,21 @@
 - **Prompt:** "Revisar las mejores prácticas de la estructura del proyecto, que tenga un patrón de diseño con buenas prácticas y código legible y mantenible, documentar en español."
 - **Resultado:** 7 hallazgos (6 aplicados, 1 diferido como deuda técnica) y guía `GUIA_BUENAS_PRACTICAS.md`, que incluye catálogo de patrones con su equivalente en .NET, convenciones, receta para agregar funcionalidades, checklist y deuda técnica.
 - **Aprendizaje:** una buena arquitectura igual necesita convenciones escritas; si no, se degrada con cada cambio.
+
+### 20. Backend .NET 10 para prueba de datos
+- **Prompt:** "Hagamos el back en .NET también, ¿podemos? Para hacer una prueba de datos."
+- **Decisiones (tomadas por mí entre opciones propuestas):** SQLite, API + conectar el front, CQRS con handlers propios en lugar de MediatR (licencia comercial desde la v13) y .NET 10.
+- **Resultado:**
+  - API REST con Clean Architecture en 4 proyectos, patrón Result → Problem Details, EF Core + SQLite con 6 meses de datos de ejemplo y archivo `.http` para pruebas manuales.
+  - En el frontend, el puerto `StoreGateway` asíncrono con adaptadores localStorage y HTTP, guardado optimista y manejo de errores de conexión.
+- **Validación:**
+  - Dominio y aplicación compilados; 28 pruebas unitarias ejecutadas.
+  - Endpoints probados con curl: validaciones 400 por campo, 404, 409 (ADR-008) y CORS.
+  - E2E del frontend contra la API: alta, edición, borrado, categoría nueva y recarga; también el mensaje con la API apagada.
+- **Hallazgos corregidos durante la prueba:**
+  - La API devolvía solo el primer error de validación; ahora devuelve todos juntos.
+  - Un `paymentMethod` inválido producía 500 en Development; ahora devuelve 400 (`ThrowOnBadRequest = false`).
+- **Aprendizaje:** el puerto síncrono era deuda técnica real. Diseñarlo en función de las **acciones** del store (`persist(action)`) permitió mapear cada cambio a un endpoint REST sin tocar dominio ni componentes.
 
 ---
 

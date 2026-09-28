@@ -11,9 +11,9 @@
 | 2 | Gestionar categorías (crear, renombrar, color, eliminar) | ✅ |
 | 3 | Dashboard básico (total del mes, promedio diario, top categoría, gasto por categoría, tendencia 6 meses) | ✅ |
 | 4 | Filtros por mes, categoría y texto | ✅ |
-| 5 | Persistencia de datos local (localStorage) | ✅ |
+| 5 | Persistencia de datos: localStorage **o** API .NET 10 + SQLite (ADR-011) | ✅ |
 | 6 | Exportar / importar respaldo JSON | ✅ |
-| — | Autenticación, multi-usuario, backend | ❌ (fase 2) |
+| — | Autenticación, multi-usuario | ❌ (fase 2) |
 
 ## 2. Stack
 
@@ -41,7 +41,7 @@ flowchart TD
     subgraph A["application/"]
         UC[useCases/*<br/>expense · category · backup]
         St[state/storeReducer]
-        Ports[ports/*<br/>Repository · IdGenerator · Clock]
+        Ports[ports/*<br/>StoreGateway · IdGenerator · Clock]
     end
 
     subgraph D["domain/ (puro)"]
@@ -52,7 +52,8 @@ flowchart TD
     end
 
     subgraph I["infrastructure/"]
-        LSR[storage/LocalStorageRepository]
+        LSR[storage/LocalStorageGateway]
+        HTTP[http/HttpGateway → API .NET]
         Sys[system/ cryptoIdGenerator · systemClock]
         Cont[container.ts<br/>createDependencies]
     end
@@ -66,8 +67,9 @@ flowchart TD
     Rules --> Ent & Sh
     Svc --> Ent & Sh
     LSR -. implementa .-> Ports
+    HTTP -. implementa .-> Ports
     Sys -. implementa .-> Ports
-    Cont --> LSR & Sys
+    Cont --> LSR & HTTP & Sys
 ```
 
 | Capa | Responsabilidad | Puede importar de |
@@ -85,7 +87,7 @@ La regla se verifica automáticamente en `src/__tests__/architecture.test.ts`.
 1. Un componente llama, p. ej., `store.addExpense(input)`.
 2. `useExpenseStore` invoca el caso de uso puro `addExpense(state, input, { ids, clock })`.
 3. El caso de uso valida y normaliza con reglas de dominio y devuelve una **decisión**: `{ ok: false, errors }` o `{ ok: true, action }` con la entidad ya construida.
-4. Si es válida, el hook despacha la acción al `storeReducer` (que solo aplica cambios) y la persistencia ocurre en efectos que llaman a `Repository.saveAll`.
+4. Si es válida, el hook despacha la acción al `storeReducer` (que solo aplica cambios) y la envía a `StoreGateway.persist()` (guardado optimista). Si la persistencia falla, se muestra el error y se recargan los datos (ADR-011).
 
 ## 4. Modelo de datos
 
@@ -161,7 +163,17 @@ Almacenamiento: dos claves en `localStorage`, versionadas:
 - **Decisión:** el dominio expone solo los valores (`PAYMENT_METHODS` como tupla `as const`); las etiquetas viven en `presentation/labels.ts` como `Record<PaymentMethod, string>`. La lógica del formulario pasa a `useExpenseForm`, el marcado repetido a `Field`, y el reinicio se hace con `key`.
 - **Consecuencias:** + el compilador exige etiqueta para cada método nuevo; + componentes más cortos y declarativos; + sin supresiones del linter. − Un archivo más por formulario.
 
-Guía de trabajo diario (patrones, convenciones, checklist): [GUIA_BUENAS_PRACTICAS.md](GUIA_BUENAS_PRACTICAS.md).
+### ADR-011 · Backend .NET 10 opcional y puerto `StoreGateway` asíncrono
+- **Contexto:** Se necesitaba probar el flujo con datos reales en un servidor. El puerto `Repository<T>` era síncrono (`getAll`/`saveAll`) y no servía para HTTP (deuda técnica #1 de la guía).
+- **Decisión:**
+  - **Backend** en `api/`: ASP.NET Core 10 Minimal APIs, Clean Architecture en 4 proyectos (Domain, Application, Infrastructure, Api), CQRS con **handlers propios** (sin MediatR, que pasó a licencia comercial en la v13), patrón Result con Problem Details (RFC 9457), EF Core + **SQLite** con `EnsureCreated` y seed de 6 meses de datos de ejemplo en Development.
+  - **Frontend:** el puerto pasa a ser `StoreGateway { load(): Promise<StoreState>; persist(action, next): Promise<void> }`. Adaptadores: `LocalStorageGateway` (por defecto) y `HttpGateway` (`VITE_DATA_SOURCE=api`). `Repository<T>` queda como detalle interno del adaptador local.
+  - **Guardado optimista:** la UI aplica la acción al instante; si la API la rechaza, se muestra el mensaje y se recarga el estado desde el servidor.
+  - Los **ids los genera el frontend** y la API los respeta, así la memoria y la base coinciden sin esperar la respuesta.
+  - Las reglas de negocio se **duplican** (TS y C#), con los mismos mensajes y claves de campo; la API es la autoridad final.
+- **Consecuencias:** + el mismo frontend funciona con o sin backend; + migrar a SQL Server es cambiar el provider de EF Core; + deuda técnica #1 resuelta. − Reglas duplicadas en dos lenguajes (se mitiga con pruebas en ambos lados). − SQLite no suma `decimal` en SQL: los totales se calculan en memoria. − `EnsureCreated` no versiona el esquema: al pasar a producción se deben usar migraciones.
+
+Guía de trabajo diario (patrones, convenciones, checklist): [GUIA_BUENAS_PRACTICAS.md](GUIA_BUENAS_PRACTICAS.md). Backend: [api/README.md](../api/README.md).
 
 ## 6. Estructura de carpetas
 
@@ -174,13 +186,14 @@ src/
 │   ├── shared/             # dates, money, validation
 │   └── index.ts            # API pública de la capa
 ├── application/
-│   ├── ports/              # Repository<T>, IdGenerator, Clock, AppDependencies
+│   ├── ports/              # StoreGateway, IdGenerator, Clock, AppDependencies
 │   ├── state/              # StoreState, StoreAction, storeReducer, loadState
 │   ├── useCases/           # expense, category, backup (funciones puras)
 │   ├── result.ts           # Result / Decision
 │   └── index.ts
 ├── infrastructure/
-│   ├── storage/            # LocalStorageRepository, KeyValueStorage, seed
+│   ├── storage/            # LocalStorageGateway, LocalStorageRepository, KeyValueStorage, seed
+│   ├── http/               # HttpGateway, ApiError (API .NET)
 │   ├── system/             # cryptoIdGenerator, systemClock
 │   └── container.ts        # createDependencies() / createRepositories()
 ├── presentation/
@@ -195,8 +208,8 @@ src/
 
 ## 7. Roadmap (fase 2)
 
-1. API ASP.NET Core 8 (Clean Architecture + CQRS/MediatR) con SQL Server / Azure SQL.
-2. `HttpRepository` en el frontend + autenticación (Entra ID).
+1. ~~API .NET + `HttpGateway`~~ ✅ hecho (ADR-011). Siguiente: migraciones EF Core y SQL Server / Azure SQL.
+2. Autenticación (Entra ID) y datos por usuario.
 3. Presupuestos por categoría y alertas.
 4. Importación automática desde correos de notificación bancaria.
 5. Despliegue en Azure Static Web Apps con CI en GitHub Actions.

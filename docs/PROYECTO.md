@@ -25,7 +25,7 @@ Desarrollar competencias en desarrollo web moderno y programación asistida por 
 | Categorías | 8 por defecto; crear, renombrar, color; eliminación bloqueada si tiene gastos |
 | Dashboard | Total del mes, variación vs mes anterior, promedio diario, registros, categoría principal, gasto por categoría, tendencia 6 meses |
 | Filtros | Mes, categoría, búsqueda por texto |
-| Datos | `localStorage` versionado, exportar / importar respaldo JSON validado |
+| Datos | `localStorage` versionado **o API .NET 10 + SQLite**; exportar / importar respaldo JSON validado |
 
 ## 4. Stack y calidad
 
@@ -33,8 +33,9 @@ Desarrollar competencias en desarrollo web moderno y programación asistida por 
 |---------|----------|
 | Frontend | React 19, TypeScript estricto, Vite 8 |
 | Estado | `useReducer` en un hook dedicado (`useExpenseStore`) |
-| Persistencia | Patrón Repository sobre `localStorage` |
-| Pruebas | Vitest — 38 pruebas unitarias (dominio, reducer, repositorio, respaldo) |
+| Persistencia | Puerto `StoreGateway`: `localStorage` o API REST (.NET 10, EF Core + SQLite) |
+| Backend | ASP.NET Core 10 Minimal APIs, Clean Architecture, CQRS con handlers propios, Problem Details |
+| Pruebas | Frontend: Vitest, 77 pruebas (incluye arquitectura y gateways). Backend: xUnit, unitarias + integración con WebApplicationFactory |
 | Calidad | `tsc -b` sin errores, oxlint 0 warnings, prueba E2E de humo con Playwright |
 | Runtime | Node 20.19+ / 22 LTS (`.nvmrc`) |
 
@@ -62,12 +63,15 @@ nvm use 22
 npm install
 npm run dev     # http://localhost:5173
 npm test
+
+# Backend (opcional)
+dotnet run --project api/src/Gastos.Api
 ```
 
 ## 8. Próximos pasos (fase 2)
 
-1. API ASP.NET Core 8 con Clean Architecture + CQRS/MediatR y SQL Server / Azure SQL.
-2. `HttpRepository` en el frontend + autenticación Entra ID.
+1. ~~API .NET + conexión del frontend~~ ✅ (ADR-011). Siguiente: migraciones EF Core y SQL Server / Azure SQL.
+2. Autenticación Entra ID y datos por usuario.
 3. Presupuestos por categoría con alertas.
 4. Importación automática desde correos de notificación bancaria.
 5. Despliegue en Azure Static Web Apps con GitHub Actions.

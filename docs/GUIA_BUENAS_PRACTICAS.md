@@ -26,13 +26,14 @@ src/
 │   ├── shared/                 # Utilidades de dominio: fechas, dinero, validación
 │   └── index.ts                # API pública de la capa (barrel)
 ├── application/                # Orquestación de casos de uso
-│   ├── ports/                  # Interfaces hacia el exterior: Repository, IdGenerator, Clock
+│   ├── ports/                  # Interfaces hacia el exterior: StoreGateway, IdGenerator, Clock
 │   ├── state/                  # StoreState, StoreAction, storeReducer
 │   ├── useCases/               # addExpense, deleteCategory, importBackup…
 │   ├── result.ts               # Result / Decision / fail / accept
 │   └── index.ts
 ├── infrastructure/             # Implementaciones concretas de los puertos
-│   ├── storage/                # LocalStorageRepository, KeyValueStorage, seed
+│   ├── storage/                # LocalStorageGateway, LocalStorageRepository, KeyValueStorage, seed
+│   ├── http/                   # HttpGateway → API .NET
 │   ├── system/                 # cryptoIdGenerator, systemClock
 │   └── container.ts            # createDependencies(): arma todo
 ├── presentation/               # React
@@ -53,8 +54,8 @@ src/
 | Una regla que dice si algo es válido | `domain/rules` | `validateExpense`, `countExpensesInCategory` |
 | Un cálculo sobre datos | `domain/services` | `monthSummary`, `totalsByCategory` |
 | Una operación que el usuario ejecuta | `application/useCases` | `addExpense`, `importBackup` |
-| Algo que habla con el navegador, la red o el reloj | `infrastructure` | `LocalStorageRepository`, `systemClock` |
-| La interfaz que la infraestructura debe cumplir | `application/ports` | `Repository<T>`, `Clock` |
+| Algo que habla con el navegador, la red o el reloj | `infrastructure` | `HttpGateway`, `LocalStorageGateway`, `systemClock` |
+| La interfaz que la infraestructura debe cumplir | `application/ports` | `StoreGateway`, `Clock` |
 | Cómo se ve algo en pantalla | `presentation/components` | `Dashboard`, `Field` |
 | Estado o lógica solo de UI | `presentation/hooks` | `useExpenseForm` |
 | Texto visible para el usuario | `presentation/labels.ts` / JSX | `'SINPE Móvil'` |
@@ -67,7 +68,8 @@ src/
 | Patrón | Dónde | Para qué sirve | Equivalente en .NET |
 |--------|-------|----------------|---------------------|
 | **Clean Architecture / Hexagonal (Ports & Adapters)** | Toda la estructura | Aislar el negocio de la tecnología (React, `localStorage`) | Proyectos Domain / Application / Infrastructure / Web |
-| **Repository** | `ports/repository.ts` + `LocalStorageRepository` | Cambiar la persistencia sin tocar el negocio (ADR-002) | `IRepository<T>` + EF Core |
+| **Gateway / Repository** | `ports/storeGateway.ts` + `LocalStorageGateway` / `HttpGateway` | Cambiar la persistencia (navegador o API) sin tocar el negocio (ADR-002, ADR-011) | `IRepository<T>` + EF Core |
+| **Actualización optimista** | `useExpenseStore.execute` | La UI responde al instante; si el servidor falla, se revierte recargando | Patrón común en SPAs |
 | **Inyección de dependencias + Composition Root** | `container.ts` → `main.tsx` → `<App deps>` | Un único lugar crea las implementaciones concretas | `Program.cs` con `builder.Services.Add…` |
 | **Caso de uso / Command** | `application/useCases/*` | Una función por operación del usuario | Handler de MediatR (`IRequestHandler`) |
 | **Núcleo funcional, cáscara imperativa** | Caso de uso devuelve `Decision`; el hook ejecuta | La lógica es pura y testeable; los efectos quedan en el borde | Handler puro + `SaveChanges` en el pipeline |
@@ -96,7 +98,7 @@ ExpenseForm ──submit──► useExpenseForm.handleSubmit
                      dispatch(action) → storeReducer   (PURO)
                               │
                               ▼
-               useEffect → repositories.expenses.saveAll()  (infrastructure)
+               gateway.persist(action)  → localStorage o POST /api/expenses  (infrastructure)
 ```
 
 ---
@@ -205,8 +207,10 @@ Ejemplo: **presupuesto mensual por categoría**.
 
 | # | Deuda | Impacto | Plan |
 |---|-------|---------|------|
-| 1 | `Repository<T>` es **síncrono** | Una API HTTP es asíncrona | Pasar a `Promise<T[]>` al introducir `HttpRepository` (fase 2) |
-| 2 | Se reescribe la colección completa en cada cambio | Irrelevante para uso personal | Operaciones por entidad cuando exista API |
+| 1 | ~~`Repository<T>` síncrono~~ | — | ✅ Resuelto con `StoreGateway` asíncrono (ADR-011) |
+| 1b | Reglas de negocio duplicadas en TS y C# | Un cambio de regla toca dos lugares | Mismos mensajes y claves; pruebas en ambos lados. Evaluar generar validaciones desde OpenAPI |
+| 1c | `EnsureCreated` en vez de migraciones | No hay historial del esquema | Pasar a `dotnet ef migrations` antes de SQL Server |
+| 2 | En modo local se reescribe la colección completa en cada cambio | Irrelevante para uso personal | En modo API ya es por entidad |
 | 3 | `App.tsx` orquesta las 3 pestañas | Crece si se agregan vistas | Extraer `pages/` o usar un router si hay más de 3 vistas |
 | 4 | Sin pruebas de componentes (DOM) | La UI se verifica con E2E manual | Agregar React Testing Library si la UI crece |
 | 5 | Moneda única CRC | — | ADR nuevo si se necesita multimoneda |
