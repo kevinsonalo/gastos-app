@@ -35,10 +35,10 @@ Clean Architecture in four layers (full diagram and ADR-009 in `docs/ARQUITECTUR
 
 Cross-layer imports go through the barrels `domain/index.ts` and `application/index.ts`; add new exports there.
 
-- **`domain/`** — `entities/` (types, `PAYMENT_METHODS`), `rules/` (`validateX` returns a `ValidationErrors<T>` map; `normalizeX` gives the canonical persisted shape; `countExpensesInCategory` for ADR-008), `services/stats.ts` (dashboard aggregations), `shared/` (dates, `roundMoney`, `hasErrors`).
+- **`domain/`** — `entities/` (types; `PAYMENT_METHODS` is a value tuple only, UI labels live in `presentation/labels.ts`), `rules/` (`validateX` returns a `ValidationErrors<T>` map; `normalizeX` gives the canonical persisted shape; `countExpensesInCategory` for ADR-008), `services/stats.ts` (dashboard aggregations), `shared/` (dates, `roundMoney`, `hasErrors`).
 - **`application/`** — `ports/` defines `Repository<T>`, `IdGenerator`, `Clock` and `AppDependencies`. `useCases/` are **pure functions** `(state, …args, services) → Decision`, where `Decision` is `{ ok: false, errors }` or `{ ok: true, action }` carrying a fully built entity (id, timestamps, normalized fields). `state/storeReducer.ts` only applies actions — it does not validate or generate ids/dates.
 - **`infrastructure/`** — `container.ts` `createDependencies(storage?)` builds `LocalStorageRepository` instances (versioned keys `gastos:v1:categories` / `gastos:v1:expenses`, categories seeded from `storage/seed.ts` when empty), `cryptoIdGenerator` and `systemClock`. `browserStorage()` falls back to `MemoryStorage` if `localStorage` is unavailable. A future `HttpRepository` should only touch this layer.
-- **`presentation/`** — `hooks/useExpenseStore(deps)` is a thin React adapter: it runs a use case, dispatches the action if `ok`, and persists each collection via `useEffect` → `saveAll`. `App.tsx` receives `deps` from `main.tsx` and passes store data/commands down as props (no Context). `format.ts` holds display formatting (`formatCurrency`, `formatDate`, `monthLabel`).
+- **`presentation/`** — `hooks/useExpenseStore(deps)` is a thin React adapter: it runs a use case, dispatches the action if `ok`, and persists each collection via `useEffect` → `saveAll`. `App.tsx` receives `deps` from `main.tsx` and passes store data/commands down as props (no Context). `format.ts` holds display formatting (`formatCurrency`, `formatDate`, `monthLabel`); `labels.ts` maps domain values to Spanish UI text. Form logic goes in hooks (`useExpenseForm`) and shared markup in small components (`Field`); reset component state with `key`, never with a suppressed `useEffect`.
 
 To add a feature: rule in `domain/rules` → use case in `application/useCases` (+ action in `storeReducer` if new) → expose it in `useExpenseStore` → UI in `presentation/components`.
 
@@ -53,4 +53,4 @@ To add a feature: rule in `domain/rules` → use case in `application/useCases` 
 
 ## Docs
 
-`docs/ARQUITECTURA.md` (diagrams, data model, ADR-001…009, roadmap), `docs/CODE_REVIEW.md`, `docs/BITACORA_PROMPTS.md` (log of AI-assisted activities for the "Objetivo Babel 2026" goal). Update the ADRs when making an architectural change.
+`docs/ARQUITECTURA.md` (diagrams, data model, ADR-001…010, roadmap), `docs/GUIA_BUENAS_PRACTICAS.md` (where code goes, design patterns, conventions, pre-commit checklist — follow it), `docs/CODE_REVIEW.md`, `docs/BITACORA_PROMPTS.md` (log of AI-assisted activities for the "Objetivo Babel 2026" goal). Update the ADRs when making an architectural change.

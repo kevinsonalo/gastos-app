@@ -35,7 +35,7 @@ flowchart TD
         App[App.tsx]
         Comp[components/*]
         Hook[hooks/useExpenseStore<br/>adaptador React]
-        Fmt[format.ts]
+        Fmt[format.ts · labels.ts]
     end
 
     subgraph A["application/"]
@@ -156,12 +156,19 @@ Almacenamiento: dos claves en `localStorage`, versionadas:
 - **Decisión:** Separar `domain / application / infrastructure / presentation`. Los casos de uso son funciones puras que reciben el estado y los servicios (`IdGenerator`, `Clock`) inyectados y devuelven una acción; los puertos viven en `application/ports`; `main.tsx` es el único composition root.
 - **Consecuencias:** + Casos de uso probables sin React ni mocks de tiempo; + migrar a `HttpRepository` (fase 2) solo toca `infrastructure/`; + la regla de dependencias está cubierta por una prueba. − Más archivos y un nivel extra de indirección para una app pequeña.
 
+### ADR-010 · Textos de UI fuera del dominio y lógica de formularios en hooks
+- **Contexto:** `PAYMENT_METHODS` mezclaba valores de negocio con etiquetas en español, y `ExpenseForm` combinaba estado, conversión y marcado (con un `eslint-disable` para reiniciar el estado).
+- **Decisión:** el dominio expone solo los valores (`PAYMENT_METHODS` como tupla `as const`); las etiquetas viven en `presentation/labels.ts` como `Record<PaymentMethod, string>`. La lógica del formulario pasa a `useExpenseForm`, el marcado repetido a `Field`, y el reinicio se hace con `key`.
+- **Consecuencias:** + el compilador exige etiqueta para cada método nuevo; + componentes más cortos y declarativos; + sin supresiones del linter. − Un archivo más por formulario.
+
+Guía de trabajo diario (patrones, convenciones, checklist): [GUIA_BUENAS_PRACTICAS.md](GUIA_BUENAS_PRACTICAS.md).
+
 ## 6. Estructura de carpetas
 
 ```
 src/
 ├── domain/                 # Núcleo puro: sin React ni I/O
-│   ├── entities/           # Expense, Category, PAYMENT_METHODS
+│   ├── entities/           # Expense, Category, PaymentMethod (solo valores)
 │   ├── rules/              # validar/normalizar gastos y categorías, ADR-008
 │   ├── services/           # stats: filtros, totales, tendencia, resumen mensual
 │   ├── shared/             # dates, money, validation
@@ -178,8 +185,9 @@ src/
 │   └── container.ts        # createDependencies() / createRepositories()
 ├── presentation/
 │   ├── components/         # UI
-│   ├── hooks/              # useExpenseStore (adaptador React)
-│   ├── format.ts           # moneda, fechas y etiquetas es-CR
+│   ├── hooks/              # useExpenseStore (adaptador React), useExpenseForm
+│   ├── format.ts           # moneda y fechas es-CR
+│   ├── labels.ts           # textos de UI para valores del dominio
 │   └── App.tsx
 ├── __tests__/              # espejo por capa + architecture.test.ts
 └── main.tsx                # composition root

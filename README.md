@@ -45,12 +45,13 @@ src/
 
 | Documento | Key Result |
 |-----------|-----------|
-| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — diagrama de componentes, modelo de datos, 8 ADRs, roadmap | KR1 |
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — diagrama de capas, modelo de datos, 10 ADRs, roadmap | KR1 |
 | [github.com/kevinsonalo/gastos-app](https://github.com/kevinsonalo/gastos-app) + historial de commits | KR2 |
-| [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 10+ actividades con Claude | KR3 |
+| [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 19 actividades con Claude | KR3 |
 | [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) — revisión asistida y verificación | KR3 |
 | [CLAUDE.md](CLAUDE.md) — contexto del proyecto para Claude Code (`/init`) | KR3 |
 | [docs/PROYECTO.md](docs/PROYECTO.md) — ficha del proyecto y estado de KRs | Todos |
+| [docs/GUIA_BUENAS_PRACTICAS.md](docs/GUIA_BUENAS_PRACTICAS.md) — estructura, patrones de diseño, convenciones y checklist | KR1 / KR3 |
 | [docs/MEJORES_PRACTICAS_PROMPTS.md](docs/MEJORES_PRACTICAS_PROMPTS.md) — mejores prácticas de prompts | KR3 / KR4 |
 
 ## Capturas

@@ -27,6 +27,8 @@
 | 15 | Contexto del repositorio con `/init` (Claude Code en VS Code) | `CLAUDE.md` | Revisado y aprobado manualmente |
 | 16 | Diagnóstico de entorno (Node 18 vs Vite 8, credenciales Git) | Commit `chore: requerir Node 20.19+` | App ejecutando en Node 22 |
 | 17 | Documentación de mejores prácticas de prompts | `MEJORES_PRACTICAS_PROMPTS.md` | Revisión propia |
+| 18 | Refactor a Clean Architecture con Claude Code en VS Code | Commit `main update structure`, ADR-009, `architecture.test.ts` | 60 pruebas, build y lint en verde |
+| 19 | Revisión de estructura, patrones y mantenibilidad | `GUIA_BUENAS_PRACTICAS.md`, ADR-010, `CODE_REVIEW.md` #9–15 | 62 pruebas + E2E |
 
 ---
 
@@ -104,6 +106,16 @@
 
 ### 17. Mejores prácticas de prompts
 - Documento `MEJORES_PRACTICAS_PROMPTS.md` con anatomía del prompt, plantillas, comandos y lecciones.
+
+### 18. Refactor a Clean Architecture (Claude Code en consola)
+- **Herramienta:** Claude Code dentro de VS Code.
+- **Resultado:** capas `domain / application / infrastructure / presentation`, casos de uso puros que devuelven una `Decision`, puertos `Repository`, `Clock` e `IdGenerator`, composition root en `main.tsx`, y una prueba automática de la regla de dependencias.
+- **Validación:** 60 pruebas, build y lint en verde; ADR-009 documentado.
+
+### 19. Revisión de estructura y buenas prácticas
+- **Prompt:** "Revisar las mejores prácticas de la estructura del proyecto, que tenga un patrón de diseño con buenas prácticas y código legible y mantenible, documentar en español."
+- **Resultado:** 7 hallazgos (6 aplicados, 1 diferido como deuda técnica) y guía `GUIA_BUENAS_PRACTICAS.md`, que incluye catálogo de patrones con su equivalente en .NET, convenciones, receta para agregar funcionalidades, checklist y deuda técnica.
+- **Aprendizaje:** una buena arquitectura igual necesita convenciones escritas; si no, se degrada con cada cambio.
 
 ---
 
