@@ -53,6 +53,18 @@ public class ExpenseHandlersTests
     }
 
     [Fact]
+    public async Task Crear_rechaza_un_id_demasiado_largo_enviado_por_el_cliente()
+    {
+        var store = InMemoryStore.WithCategories();
+        var handler = new CreateExpenseHandler(store, store, store, new FixedClock(Now), new SequentialIds());
+
+        var result = await handler.Handle(new CreateExpenseCommand(new string('x', 65), 100m, "Pan", "food", Today, PaymentMethod.Card), default);
+
+        Assert.Contains("id", result.Error!.Fields!.Keys);
+        Assert.Empty(store.Expenses);
+    }
+
+    [Fact]
     public async Task Actualizar_un_gasto_inexistente_devuelve_NotFound()
     {
         var store = InMemoryStore.WithCategories();

@@ -1,5 +1,6 @@
 using Gastos.Domain.Categories;
 using Gastos.Domain.Expenses;
+using Gastos.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,10 +12,10 @@ internal sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
     {
         builder.ToTable("Expenses");
         builder.HasKey(e => e.Id);
-        builder.Property(e => e.Id).HasMaxLength(64);
+        builder.Property(e => e.Id).HasMaxLength(EntityId.MaxLength);
         builder.Property(e => e.Amount).HasPrecision(18, 2);
         builder.Property(e => e.Description).HasMaxLength(ExpenseRules.MaxDescriptionLength).IsRequired();
-        builder.Property(e => e.CategoryId).HasMaxLength(64).IsRequired();
+        builder.Property(e => e.CategoryId).HasMaxLength(EntityId.MaxLength).IsRequired();
         builder.Property(e => e.PaymentMethod).HasConversion<string>().HasMaxLength(16);
         builder.Property(e => e.CreatedAt).HasConversion(new UtcDateTimeConverter());
         builder.Property(e => e.UpdatedAt).HasConversion(new UtcDateTimeConverter());

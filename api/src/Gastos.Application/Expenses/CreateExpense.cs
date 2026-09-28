@@ -23,6 +23,7 @@ public sealed class CreateExpenseHandler(
     public async Task<Result<ExpenseDto>> Handle(CreateExpenseCommand command, CancellationToken ct)
     {
         var id = string.IsNullOrWhiteSpace(command.Id) ? ids.NewId() : command.Id;
+        if (!EntityId.IsValid(id)) return EntityId.Invalid();
         if (await expenses.GetByIdAsync(id, ct) is not null) return Error.Conflict($"Ya existe un gasto con id '{id}'.");
 
         var data = new ExpenseData(command.Amount, command.Description ?? string.Empty, command.CategoryId ?? string.Empty, command.Date, command.PaymentMethod);

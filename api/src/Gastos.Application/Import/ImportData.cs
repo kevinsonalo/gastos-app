@@ -17,6 +17,7 @@ public sealed class ImportDataHandler(IUnitOfWork unitOfWork, IClock clock) : IC
         var categories = new List<Category>();
         foreach (var c in command.Categories)
         {
+            if (!EntityId.IsValid(c.Id)) return Error.Validation("file", "Hay categorías con id inválido.");
             var created = Category.Create(c.Id, c.Name, c.Color, c.CreatedAt == default ? clock.UtcNow : c.CreatedAt);
             if (!created.IsSuccess) return Error.Validation("file", $"Categoría inválida '{c.Id}'.");
             categories.Add(created.Value);
@@ -26,6 +27,7 @@ public sealed class ImportDataHandler(IUnitOfWork unitOfWork, IClock clock) : IC
         var expenses = new List<Expense>();
         foreach (var e in command.Expenses)
         {
+            if (!EntityId.IsValid(e.Id)) return Error.Validation("file", "Hay gastos con id inválido.");
             if (!categoryIds.Contains(e.CategoryId)) return Error.Validation("file", "Hay gastos con categorías inexistentes.");
 
             var data = new ExpenseData(e.Amount, e.Description, e.CategoryId, e.Date, e.PaymentMethod);

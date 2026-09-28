@@ -17,6 +17,7 @@ public sealed class CreateCategoryHandler(
     {
         var existing = await categories.GetAllAsync(ct);
         var id = string.IsNullOrWhiteSpace(command.Id) ? ids.NewId() : command.Id;
+        if (!EntityId.IsValid(id)) return EntityId.Invalid();
 
         if (existing.Any(c => c.Id == id)) return Error.Conflict($"Ya existe una categoría con id '{id}'.");
         if (existing.Any(c => CategoryRules.SameName(c.Name, command.Name ?? string.Empty)))
