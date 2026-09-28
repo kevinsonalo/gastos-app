@@ -1,5 +1,7 @@
 # 💸 Mis Gastos — Módulo de gestión de gastos personales
 
+[![CI](https://github.com/kevinsonalo/gastos-app/actions/workflows/ci.yml/badge.svg)](https://github.com/kevinsonalo/gastos-app/actions/workflows/ci.yml)
+
 Repositorio: https://github.com/kevinsonalo/gastos-app
 
 MVP en **React 19 + TypeScript + Vite** desarrollado para el Objetivo Babel 2026:
@@ -60,13 +62,15 @@ src/
 
 Backend en `api/` (Clean Architecture .NET): ver [api/README.md](api/README.md).
 
+**Calidad:** `npm run check` (lint + pruebas + build) y `dotnet test api`. Ambos corren en cada push con GitHub Actions (`.github/workflows/ci.yml`).
+
 ## Documentación (evidencias)
 
 | Documento | Key Result |
 |-----------|-----------|
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — diagrama de capas, modelo de datos, 11 ADRs, roadmap | KR1 |
 | [github.com/kevinsonalo/gastos-app](https://github.com/kevinsonalo/gastos-app) + historial de commits | KR2 |
-| [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 20 actividades con Claude | KR3 |
+| [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 21 actividades con Claude | KR3 |
 | [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) — revisión asistida y verificación | KR3 |
 | [CLAUDE.md](CLAUDE.md) — contexto del proyecto para Claude Code (`/init`) | KR3 |
 | [docs/PROYECTO.md](docs/PROYECTO.md) — ficha del proyecto y estado de KRs | Todos |

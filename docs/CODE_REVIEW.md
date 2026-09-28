@@ -27,9 +27,22 @@ Sobre el refactor a Clean Architecture (commit `main update structure`).
 | 14 | Info | `domain/services/stats.ts` | Funciones públicas sin JSDoc. | ✅ Documentadas en español. |
 | 15 | Diferido | `application/ports/repository.ts` | Interfaz síncrona incompatible con una API HTTP. | ⏸ Registrado como deuda técnica (Guía §8); se aborda en fase 2. |
 
+## Tercera revisión — sistema completo: frontend + backend (28-sep-2026)
+
+| # | Severidad | Área | Hallazgo | Acción |
+|---|-----------|------|----------|--------|
+| 16 | Media | `api` · Create/Import | Un id enviado por el cliente de más de 64 caracteres pasaba la validación y fallaba en la base (500). | ✅ `EntityId.IsValid` en crear e importar; la constante se usa también en la configuración de EF + prueba. |
+| 17 | Media | `api` · arquitectura | La regla de dependencias del backend no tenía prueba automática (el frontend sí). | ✅ `ArchitectureTests`: Domain no referencia otras capas ni EF/ASP.NET; Application solo el dominio; cada command/query tiene exactamente un handler. |
+| 18 | Media | Repositorio | Sin integración continua: nada impedía subir código que no compila. | ✅ GitHub Actions con jobs de frontend (lint, test, build) y backend (build, test). |
+| 19 | Baja | Repositorio | Sin reglas de formato compartidas entre VS Code y Visual Studio. | ✅ `.editorconfig` (TS 2 espacios, C# 4 espacios, convenciones de nombres). |
+| 20 | Baja | `api` · restore | La configuración global de NuGet con un feed privado vencido rompía la restauración. | ✅ `api/nuget.config` propio con solo nuget.org. |
+| 21 | Baja | `api` · paquetes | Paquetes 10.0.0 con dependencias transitivas vulnerables (Microsoft.OpenApi, SQLitePCLRaw). | ✅ Parches `10.0.*`. |
+| 22 | Sugerencia | Repositorio | Estructura asimétrica: frontend en la raíz y backend en `api/`. | ⏸ Propuesto mover el frontend a `web/` (monorepo simétrico). Se difiere: implica cambiar rutas de CI, docs y Vercel/Azure; conviene hacerlo al configurar el despliegue. |
+| 23 | Sugerencia | `api` · OpenAPI | Endpoints sin tipos de respuesta documentados. | ⏸ Deuda técnica #7 (`TypedResults`). |
+
 ## Verificación
 
-- Primera revisión: `npm test` → **38/38**. Segunda revisión: **62/62** (incluye prueba de arquitectura).
+- Primera revisión: `npm test` → **38/38**. Segunda: **62/62**. Tercera: **77/77** en frontend + backend `dotnet test` (unitarias, arquitectura e integración) verificado en Windows.
 - `npm run build` (tsc estricto + Vite) → sin errores.
 - `npx oxlint src` → **0 warnings, 0 errores**.
 - Prueba de humo E2E (Playwright, script ad-hoc): alta con validación, edición, eliminación, persistencia tras recargar, bloqueo de eliminación de categoría en uso, nombre duplicado, layout móvil sin scroll horizontal, 0 errores de consola. En la segunda revisión se verificó además el cambio entre gastos en edición y la cancelación (reinicio por `key`).

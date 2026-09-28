@@ -60,6 +60,10 @@ dotnet test api                           # xUnit unit + integration (WebApplica
 
 Clean Architecture: `Gastos.Domain` (entities with private setters, `Result<T>`/`Error`), `Gastos.Application` (one file per use case: `XCommand`/`XQuery` + handler implementing `ICommandHandler`/`IQueryHandler`; no MediatR, no DI package), `Gastos.Infrastructure` (EF Core SQLite, repositories, `DataSeeder`), `Gastos.Api` (Minimal API endpoints inject handlers directly; `ResultExtensions.ToHttpResult` maps errors to Problem Details; handlers are auto-registered by reflection in `Composition/ApplicationRegistration.cs`). Validation messages and field keys must match the frontend's (`amount`, `description`, `categoryId`, …). JSON enums are camelCase strings.
 
+## Quality gates
+
+`npm run check` (oxlint + vitest + build) and `dotnet test api` must pass; both run in `.github/workflows/ci.yml`. Backend architecture rules are enforced by `api/tests/Gastos.UnitTests/ArchitectureTests.cs` (one handler per command/query). Ids are limited to `EntityId.MaxLength` (64).
+
 ## Docs
 
 `docs/ARQUITECTURA.md` (diagrams, data model, ADR-001…011, roadmap), `api/README.md` (backend endpoints and structure), `docs/GUIA_BUENAS_PRACTICAS.md` (where code goes, design patterns, conventions, pre-commit checklist — follow it), `docs/CODE_REVIEW.md`, `docs/BITACORA_PROMPTS.md` (log of AI-assisted activities for the "Objetivo Babel 2026" goal). Update the ADRs when making an architectural change.

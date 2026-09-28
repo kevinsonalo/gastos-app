@@ -30,6 +30,7 @@
 | 18 | Refactor a Clean Architecture con Claude Code en VS Code | Commit `main update structure`, ADR-009, `architecture.test.ts` | 60 pruebas, build y lint en verde |
 | 19 | Revisión de estructura, patrones y mantenibilidad | `GUIA_BUENAS_PRACTICAS.md`, ADR-010, `CODE_REVIEW.md` #9–15 | 62 pruebas + E2E |
 | 20 | Backend .NET 10 y conexión del frontend (prueba de datos) | `api/`, ADR-011, `HttpGateway` | 28 pruebas unitarias C#, 77 Vitest, E2E React ↔ API |
+| 21 | Revisión integral de buenas prácticas (front + back) y CI | `CODE_REVIEW.md` #16–23, `ci.yml`, `ArchitectureTests.cs`, Guía §8–9 | `dotnet test` + `npm run check` |
 
 ---
 
@@ -132,6 +133,16 @@
   - La API devolvía solo el primer error de validación; ahora devuelve todos juntos.
   - Un `paymentMethod` inválido producía 500 en Development; ahora devuelve 400 (`ThrowOnBadRequest = false`).
 - **Aprendizaje:** el puerto síncrono era deuda técnica real. Diseñarlo en función de las **acciones** del store (`persist(action)`) permitió mapear cada cambio a un endpoint REST sin tocar dominio ni componentes.
+
+### 21. Revisión integral y automatización de calidad
+- **Prompt:** "Revisar que todo siga buenas prácticas, sugerir estructura o patrones y reestructurar si hace falta, documentado."
+- **Resultado:** 8 hallazgos: 6 aplicados y 2 diferidos con justificación.
+  - Se validó el largo de los ids (evita un 500).
+  - Pruebas de arquitectura para .NET.
+  - GitHub Actions para ambos proyectos, `.editorconfig`, `nuget.config` propio y parches de seguridad.
+  - Guía ampliada con convenciones C#, una receta para agregar endpoints y una tabla de equivalencias entre el frontend y el backend.
+- **Diagnóstico de entorno:** `dotnet build` fallaba con 401 porque la configuración global de NuGet apuntaba a un feed privado de un empleo anterior. Se resolvió a nivel de repositorio, sin tocar la configuración de la máquina.
+- **Aprendizaje:** las reglas de arquitectura que no se verifican automáticamente se terminan rompiendo; la CI convierte las buenas prácticas en algo obligatorio.
 
 ---
 

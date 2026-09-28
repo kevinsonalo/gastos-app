@@ -23,7 +23,44 @@
 - **CSS plano** con variables (sin librería de UI) y gráficos en SVG/CSS propios → cero dependencias de runtime aparte de React.
 
 
-## 3. Arquitectura en capas
+## 3. Vista del sistema
+
+```mermaid
+flowchart LR
+    U((Usuario)) --> Web
+
+    subgraph Web["Frontend · React 19 + TS (src/)"]
+        direction TB
+        PW[presentation] --> AW[application] --> DW[domain]
+        IW[infrastructure] -. implementa puertos .-> AW
+    end
+
+    IW -- "VITE_DATA_SOURCE=local" --> LS[(localStorage)]
+    IW -- "VITE_DATA_SOURCE=api<br/>REST + JSON" --> Api
+
+    subgraph Api["Backend · ASP.NET Core 10 (api/)"]
+        direction TB
+        EP[Gastos.Api<br/>Minimal APIs] --> AP[Gastos.Application<br/>Commands/Queries + Handlers] --> DM[Gastos.Domain]
+        IN[Gastos.Infrastructure<br/>EF Core] -. implementa puertos .-> AP
+    end
+
+    IN --> DB[(SQLite<br/>gastos.db)]
+    CI[GitHub Actions CI] -. lint · test · build .-> Web & Api
+```
+
+Las **dos aplicaciones siguen la misma arquitectura** (Clean Architecture, dependencias hacia el dominio, puertos implementados por infraestructura) y cada una tiene una **prueba automática** que lo verifica: `src/__tests__/architecture.test.ts` y `api/tests/Gastos.UnitTests/ArchitectureTests.cs`.
+
+| Concepto | Frontend (TypeScript) | Backend (C#) |
+|----------|-----------------------|--------------|
+| Entidades y reglas | `domain/entities`, `domain/rules` | `Gastos.Domain` (`Expense`, `ExpenseRules`) |
+| Caso de uso | función pura `addExpense(state, input, services)` | `CreateExpenseCommand` + `CreateExpenseHandler` |
+| Resultado / error | `Decision` / `Result` | `Result<T>` / `Error` → Problem Details |
+| Puerto de persistencia | `StoreGateway` | `IExpenseRepository`, `IUnitOfWork` |
+| Adaptador | `LocalStorageGateway`, `HttpGateway` | `ExpenseRepository` (EF Core) |
+| Reloj / ids inyectables | `Clock`, `IdGenerator` | `IClock`, `IIdGenerator` |
+| Composition root | `main.tsx` + `infrastructure/container.ts` | `Program.cs` + `AddInfrastructure()` |
+
+## 3.1 Arquitectura del frontend en capas
 
 La app sigue **Clean Architecture** en cuatro capas. Las dependencias apuntan siempre hacia el dominio:
 
