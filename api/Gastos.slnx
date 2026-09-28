@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Gastos.Api/Gastos.Api.csproj" />
+    <Project Path="src/Gastos.Application/Gastos.Application.csproj" />
+    <Project Path="src/Gastos.Domain/Gastos.Domain.csproj" />
+    <Project Path="src/Gastos.Infrastructure/Gastos.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Gastos.IntegrationTests/Gastos.IntegrationTests.csproj" />
+    <Project Path="tests/Gastos.UnitTests/Gastos.UnitTests.csproj" />
+  </Folder>
+</Solution>

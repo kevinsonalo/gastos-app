@@ -1,0 +1,50 @@
+### Pruebas manuales de la API (Visual Studio / Rider / VS Code con la extensión REST Client)
+@api = http://localhost:5080
+
+### Salud
+GET {{api}}/health
+
+### Categorías
+GET {{api}}/api/categories
+
+### Crear categoría
+POST {{api}}/api/categories
+Content-Type: application/json
+
+{ "name": "Mascotas", "color": "#ff8800" }
+
+### Validación: nombre duplicado → 400
+POST {{api}}/api/categories
+Content-Type: application/json
+
+{ "name": "alimentación", "color": "#123456" }
+
+### Gastos del mes
+GET {{api}}/api/expenses?month=2026-09
+
+### Buscar texto en todos los meses
+GET {{api}}/api/expenses?search=super
+
+### Crear gasto
+POST {{api}}/api/expenses
+Content-Type: application/json
+
+{
+  "amount": 4500,
+  "description": "Café y empanada",
+  "categoryId": "cat-1",
+  "date": "2026-09-28",
+  "paymentMethod": "sinpe"
+}
+
+### Validación: monto 0 y sin descripción → 400 con errores por campo
+POST {{api}}/api/expenses
+Content-Type: application/json
+
+{ "amount": 0, "description": " ", "categoryId": "cat-1", "date": "2026-09-28", "paymentMethod": "card" }
+
+### Regla ADR-008: borrar categoría con gastos → 409
+DELETE {{api}}/api/categories/cat-3
+
+### Resumen mensual calculado en el servidor
+GET {{api}}/api/stats/monthly?month=2026-09

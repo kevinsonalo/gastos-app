@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Casos de uso (CQRS con handlers propios). Solo depende del dominio. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Gastos.Domain\Gastos.Domain.csproj" />
+  </ItemGroup>
+</Project>
