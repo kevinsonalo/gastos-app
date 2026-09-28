@@ -66,6 +66,8 @@ Backend en `api/` (Clean Architecture .NET): ver [api/README.md](api/README.md).
 
 ## Documentación (evidencias)
 
+📄 **Resumen para Workday:** [docs/Evidencia_Objetivo_Babel_2026_Kevin_Solano.pdf](docs/Evidencia_Objetivo_Babel_2026_Kevin_Solano.pdf) (5 páginas).
+
 | Documento | Key Result |
 |-----------|-----------|
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — diagrama de capas, modelo de datos, 11 ADRs, roadmap | KR1 |
