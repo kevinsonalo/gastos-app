@@ -46,6 +46,9 @@ src/
 | [github.com/kevinsonalo/gastos-app](https://github.com/kevinsonalo/gastos-app) + historial de commits | KR2 |
 | [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 10+ actividades con Claude | KR3 |
 | [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) — revisión asistida y verificación | KR3 |
+| [CLAUDE.md](CLAUDE.md) — contexto del proyecto para Claude Code (`/init`) | KR3 |
+| [docs/PROYECTO.md](docs/PROYECTO.md) — ficha del proyecto y estado de KRs | Todos |
+| [docs/MEJORES_PRACTICAS_PROMPTS.md](docs/MEJORES_PRACTICAS_PROMPTS.md) — mejores prácticas de prompts | KR3 / KR4 |
 
 ## Capturas
 

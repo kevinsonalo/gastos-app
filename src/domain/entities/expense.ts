@@ -7,13 +7,6 @@ export const PAYMENT_METHODS: ReadonlyArray<{ value: PaymentMethod; label: strin
   { value: 'transfer', label: 'Transferencia' },
 ]
 
-export interface Category {
-  id: string
-  name: string
-  color: string
-  createdAt: string
-}
-
 export interface Expense {
   id: string
   amount: number
@@ -27,7 +20,6 @@ export interface Expense {
 }
 
 export type ExpenseInput = Pick<Expense, 'amount' | 'description' | 'categoryId' | 'date' | 'paymentMethod'>
-export type CategoryInput = Pick<Category, 'name' | 'color'>
 
 export interface ExpenseFilters {
   /** YYYY-MM o '' para todos los meses */
@@ -35,5 +27,3 @@ export interface ExpenseFilters {
   categoryId: string
   search: string
 }
-
-export type ValidationErrors<T> = Partial<Record<keyof T, string>>

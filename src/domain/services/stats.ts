@@ -1,6 +1,7 @@
-import { daysInMonth, lastMonths } from './dates'
-import { roundMoney } from './format'
-import type { Category, Expense, ExpenseFilters } from './types'
+import type { Category } from '../entities/category'
+import type { Expense, ExpenseFilters } from '../entities/expense'
+import { daysInMonth, lastMonths } from '../shared/dates'
+import { roundMoney } from '../shared/money'
 
 export function filterExpenses(expenses: Expense[], filters: ExpenseFilters): Expense[] {
   const term = filters.search.trim().toLowerCase()

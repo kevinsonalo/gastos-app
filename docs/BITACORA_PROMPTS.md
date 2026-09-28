@@ -24,6 +24,9 @@
 | 12 | Pruebas E2E / QA | Script Playwright + capturas `docs/img` | Flujo completo sin errores de consola |
 | 13 | Documentación técnica | `README.md`, este documento | Revisión de lectura |
 | 14 | Elaboración de roadmap | `ARQUITECTURA.md` §7 | Alineado con stack .NET/Azure |
+| 15 | Contexto del repositorio con `/init` (Claude Code en VS Code) | `CLAUDE.md` | Revisado y aprobado manualmente |
+| 16 | Diagnóstico de entorno (Node 18 vs Vite 8, credenciales Git) | Commit `chore: requerir Node 20.19+` | App ejecutando en Node 22 |
+| 17 | Documentación de mejores prácticas de prompts | `MEJORES_PRACTICAS_PROMPTS.md` | Revisión propia |
 
 ---
 
@@ -86,6 +89,18 @@
 
 ### 13. Documentación
 - README con ejecución, estructura, tabla de evidencias por KR y capturas.
+
+### 15. `/init` en Claude Code
+- **Comando:** `claude` → `/init` en la terminal de VS Code.
+- **Resultado:** `CLAUDE.md` con comandos, arquitectura, regla de dependencias y convenciones (fechas locales, `erasableSyntaxOnly`, idioma español).
+- **Aprendizaje:** los comandos `/…` se ejecutan dentro de la sesión de `claude`, no en PowerShell.
+
+### 16. Diagnóstico de entorno
+- **Prompt:** pegar el error completo de `npm run dev` (`styleText` no exportado por `node:util`).
+- **Resultado:** causa raíz identificada (Node 18.15 < 20.19 que requiere Vite 8); solución con nvm-windows y `engines` + `.nvmrc`. También se resolvió un 403 de GitHub por credenciales de otra cuenta, poniendo el usuario en la URL del remoto.
+
+### 17. Mejores prácticas de prompts
+- Documento `MEJORES_PRACTICAS_PROMPTS.md` con anatomía del prompt, plantillas, comandos y lecciones.
 
 ### 14. Roadmap
 - Fase 2: API ASP.NET Core 8 (CQRS/MediatR), `HttpRepository`, Entra ID, presupuestos, importación desde correos bancarios, Azure Static Web Apps.
