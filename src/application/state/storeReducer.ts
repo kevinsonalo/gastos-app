@@ -1,5 +1,4 @@
 import { countExpensesInCategory, type Category, type Expense } from '../../domain'
-import type { Repositories } from '../ports/repository'
 
 export interface StoreState {
   expenses: Expense[]
@@ -41,9 +40,4 @@ export function storeReducer(state: StoreState, action: StoreAction): StoreState
   }
 }
 
-export function loadState(repositories: Repositories): StoreState {
-  return {
-    categories: repositories.categories.getAll(),
-    expenses: repositories.expenses.getAll(),
-  }
-}
+export const EMPTY_STATE: StoreState = { categories: [], expenses: [] }

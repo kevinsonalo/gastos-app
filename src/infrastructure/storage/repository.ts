@@ -1,9 +1,6 @@
 import type { Category, Expense } from '../../domain'
 
-/**
- * Puerto de persistencia (ADR-002). La infraestructura lo implementa
- * (hoy LocalStorageRepository; en fase 2, un HttpRepository contra la API .NET).
- */
+/** Colección guardada como un arreglo completo en un almacenamiento clave → valor (ADR-002). */
 export interface Repository<T> {
   getAll(): T[]
   saveAll(items: T[]): void

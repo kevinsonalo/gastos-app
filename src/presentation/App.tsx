@@ -57,51 +57,75 @@ export default function App({ deps }: Props) {
         </nav>
       </header>
 
-      <main>
-        {tab === 'dashboard' && (
-          <Dashboard expenses={store.expenses} categories={store.categories} onAddClick={() => setTab('expenses')} />
-        )}
+      {store.syncError && (
+        <div className="alert" role="alert">
+          <span>{store.syncError}</span>
+          <button type="button" onClick={store.dismissError} aria-label="Cerrar aviso">
+            ✕
+          </button>
+        </div>
+      )}
 
-        {tab === 'expenses' && (
-          <div className="expenses-layout">
-            <ExpenseForm
-              key={editing?.id ?? 'new'}
-              categories={store.categories}
-              editing={editing}
-              onSubmit={handleSubmit}
-              onCancelEdit={() => setEditing(null)}
-            />
-            <ExpenseList
-              expenses={store.expenses}
-              categories={store.categories}
-              filters={filters}
-              editingId={editing?.id ?? null}
-              onFiltersChange={setFilters}
-              onEdit={setEditing}
-              onDelete={handleDelete}
-            />
-          </div>
-        )}
+      {store.status === 'loading' && <p className="card empty">Cargando datos…</p>}
 
-        {tab === 'categories' && (
-          <>
-            <CategoryManager
-              categories={store.categories}
-              expenses={store.expenses}
-              onAdd={store.addCategory}
-              onUpdate={store.updateCategory}
-              onDelete={store.deleteCategory}
-            />
-            <section className="card">
-              <h2>Respaldo de datos</h2>
-              <p className="muted">Los datos se guardan en este navegador. Exportá un respaldo para moverlos o protegerlos.</p>
-              <BackupControls onExport={store.exportBackup} onImport={store.importBackup} />
-            </section>
-          </>
-        )}
-      </main>
+      {store.status === 'error' && (
+        <section className="card empty">
+          <p>No se pudieron cargar los datos.</p>
+          <button type="button" className="primary" onClick={store.retry}>
+            Reintentar
+          </button>
+        </section>
+      )}
 
-      <footer className="muted">Objetivo Babel 2026 · React + TypeScript · Desarrollado con apoyo de Claude</footer>
+      {store.status === 'ready' && (
+        <main>
+          {tab === 'dashboard' && (
+            <Dashboard expenses={store.expenses} categories={store.categories} onAddClick={() => setTab('expenses')} />
+          )}
+
+          {tab === 'expenses' && (
+            <div className="expenses-layout">
+              <ExpenseForm
+                key={editing?.id ?? 'new'}
+                categories={store.categories}
+                editing={editing}
+                onSubmit={handleSubmit}
+                onCancelEdit={() => setEditing(null)}
+              />
+              <ExpenseList
+                expenses={store.expenses}
+                categories={store.categories}
+                filters={filters}
+                editingId={editing?.id ?? null}
+                onFiltersChange={setFilters}
+                onEdit={setEditing}
+                onDelete={handleDelete}
+              />
+            </div>
+          )}
+
+          {tab === 'categories' && (
+            <>
+              <CategoryManager
+                categories={store.categories}
+                expenses={store.expenses}
+                onAdd={store.addCategory}
+                onUpdate={store.updateCategory}
+                onDelete={store.deleteCategory}
+              />
+              <section className="card">
+                <h2>Respaldo de datos</h2>
+                <p className="muted">{store.storageLabel}. Exportá un respaldo para moverlos o protegerlos.</p>
+                <BackupControls onExport={store.exportBackup} onImport={store.importBackup} />
+              </section>
+            </>
+          )}
+        </main>
+      )}
+
+      <footer className="muted">
+        {store.storageLabel} · Objetivo Babel 2026 · React + TypeScript · Desarrollado con apoyo de Claude
+      </footer>
     </div>
   )
 }

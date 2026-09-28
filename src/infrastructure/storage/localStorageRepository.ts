@@ -1,4 +1,4 @@
-import type { Repository } from '../../application'
+import type { Repository } from './repository'
 import type { KeyValueStorage } from './keyValueStorage'
 
 export class LocalStorageRepository<T> implements Repository<T> {
