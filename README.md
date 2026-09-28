@@ -1,32 +1,52 @@
-# React + TypeScript + Vite
+# 💸 Mis Gastos — Módulo de gestión de gastos personales
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+MVP en **React 19 + TypeScript + Vite** desarrollado para el Objetivo Babel 2026:
+*"Desarrollar competencias en desarrollo web moderno y programación asistida por IA"*.
 
-Currently, two official plugins are available:
+![Dashboard](docs/img/dashboard.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Funcionalidades
 
-## React Compiler
+- **Registro de gastos**: monto, descripción, categoría, fecha y método de pago (Tarjeta, Efectivo, SINPE Móvil, Transferencia). Crear, editar y eliminar con validación.
+- **Categorías**: 8 categorías por defecto; crear, renombrar, cambiar color y eliminar (bloqueado si tiene gastos).
+- **Dashboard**: total del mes y variación vs mes anterior, promedio diario, cantidad de registros, categoría principal, gasto por categoría y tendencia de 6 meses.
+- **Filtros**: por mes, categoría y texto.
+- **Persistencia**: `localStorage` detrás de un patrón Repository + exportar/importar respaldo JSON.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Ejecutar
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm test           # 38 pruebas unitarias (Vitest)
+npm run build      # build de producción en dist/
+npm run lint       # oxlint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Requiere Node 20+.
+
+## Estructura
+
+```
+src/
+├── domain/       # tipos, validación, estadísticas, fechas, formato (puro, testeado)
+├── data/         # Repository<T>, LocalStorageRepository, seed
+├── hooks/        # useExpenseStore (useReducer + persistencia), backup
+├── components/   # Dashboard, ExpenseForm, ExpenseList, FilterBar, CategoryManager, BackupControls
+└── __tests__/    # Vitest
+```
+
+## Documentación (evidencias)
+
+| Documento | Key Result |
+|-----------|-----------|
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — diagrama de componentes, modelo de datos, 8 ADRs, roadmap | KR1 |
+| Este repositorio + historial de commits | KR2 |
+| [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 10+ actividades con Claude | KR3 |
+| [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) — revisión asistida y verificación | KR3 |
+
+## Capturas
+
+| Gastos | Móvil |
+|---|---|
+| ![Gastos](docs/img/gastos.png) | ![Móvil](docs/img/mobile.png) |
