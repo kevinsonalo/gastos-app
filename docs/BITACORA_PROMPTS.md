@@ -90,6 +90,9 @@
 ### 13. Documentación
 - README con ejecución, estructura, tabla de evidencias por KR y capturas.
 
+### 14. Roadmap
+- Fase 2: API ASP.NET Core 8 (CQRS/MediatR), `HttpRepository`, Entra ID, presupuestos, importación desde correos bancarios, Azure Static Web Apps.
+
 ### 15. `/init` en Claude Code
 - **Comando:** `claude` → `/init` en la terminal de VS Code.
 - **Resultado:** `CLAUDE.md` con comandos, arquitectura, regla de dependencias y convenciones (fechas locales, `erasableSyntaxOnly`, idioma español).
@@ -101,9 +104,6 @@
 
 ### 17. Mejores prácticas de prompts
 - Documento `MEJORES_PRACTICAS_PROMPTS.md` con anatomía del prompt, plantillas, comandos y lecciones.
-
-### 14. Roadmap
-- Fase 2: API ASP.NET Core 8 (CQRS/MediatR), `HttpRepository`, Entra ID, presupuestos, importación desde correos bancarios, Azure Static Web Apps.
 
 ---
 
