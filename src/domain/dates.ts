@@ -38,7 +38,8 @@ const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep'
 export function monthLabel(month: string, long = false): string {
   const [y, m] = month.split('-').map(Number)
   if (long) {
-    return new Date(y, m - 1, 1).toLocaleDateString('es-CR', { month: 'long', year: 'numeric' })
+    const text = new Date(y, m - 1, 1).toLocaleDateString('es-CR', { month: 'long', year: 'numeric' })
+    return text.charAt(0).toUpperCase() + text.slice(1)
   }
   return `${MONTHS_ES[m - 1]} ${String(y).slice(2)}`
 }

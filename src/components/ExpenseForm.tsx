@@ -42,6 +42,13 @@ export function ExpenseForm({ categories, editing, onSubmit, onCancelEdit }: Pro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing])
 
+  // Ocultar el aviso "Guardado" tras 1.5 s, limpiando el timer si el componente se desmonta.
+  useEffect(() => {
+    if (!saved) return
+    const t = setTimeout(() => setSaved(false), 1500)
+    return () => clearTimeout(t)
+  }, [saved])
+
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
 
@@ -54,7 +61,6 @@ export function ExpenseForm({ categories, editing, onSubmit, onCancelEdit }: Pro
     }
     setErrors({})
     setSaved(true)
-    setTimeout(() => setSaved(false), 1500)
     if (!editing) setForm((f) => ({ ...emptyForm(categories), categoryId: f.categoryId, date: f.date }))
   }
 

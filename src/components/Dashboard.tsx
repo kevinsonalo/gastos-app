@@ -26,7 +26,7 @@ export function Dashboard({ expenses, categories, onAddClick }: Props) {
   return (
     <div className="dashboard">
       <div className="dash-header">
-        <h2>Resumen de {monthLabel(month, true)}</h2>
+        <h2>Resumen · {monthLabel(month, true)}</h2>
         <input type="month" aria-label="Mes del resumen" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} />
       </div>
 

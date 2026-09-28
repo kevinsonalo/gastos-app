@@ -81,7 +81,7 @@ input[type='color'] { width: 44px; padding: 2px; height: 38px; }
 .backup { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 .dash-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-.dash-header h2 { margin: 0; text-transform: capitalize; }
+.dash-header h2 { margin: 0; }
 .dash-header input { width: auto; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
 .stat { display: grid; gap: 4px; }
