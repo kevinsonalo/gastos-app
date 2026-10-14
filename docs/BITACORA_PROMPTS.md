@@ -33,6 +33,7 @@
 | 22 | Menú lateral, importación de correos BAC y "Borrar todo" | ADR-012, `AdminPage`, `BacNotificationReader` | 104 Vitest + E2E local y con API |
 | 21 | Revisión integral de buenas prácticas (front + back) y CI | `CODE_REVIEW.md` #16–23, `ci.yml`, `ArchitectureTests.cs`, Guía §8–9 | `dotnet test` + `npm run check` |
 | 24 | Importación de correos de cualquier banco o comercio | ADR-014, `EmailNotificationReader`, `bankProfiles.ts` | 135 Vitest + `npm run check` |
+| 25 | Contexto del repositorio: `CLAUDE.md` pulido, `api/CLAUDE.md`, permisos y comandos de Claude Code | `CLAUDE.md`, `api/CLAUDE.md`, `.claude/settings.json`, `.claude/commands/` | Rutas y nombres verificados contra el código; JSON validado; diff revisado |
 
 ---
 
@@ -181,6 +182,20 @@
   - 11 pruebas nuevas (BCR, SINPE del BN, recibo de Uber, promoción sin monto, carpeta mixta) y las 9 de BAC sin cambios de resultado: los ids `bac-<referencia>` ya importados se mantienen.
   - `npm run check` en verde (lint, 135 pruebas, build). Error atrapado por el build y no por las pruebas: propiedades de parámetro en el constructor, prohibidas por `erasableSyntaxOnly`.
 - **Pendiente:** validar las etiquetas de cada banco con correos reales.
+
+### 25. Pulido del contexto del repositorio (`CLAUDE.md`) y configuración de Claude Code
+- **Prompt:** revisar el `CLAUDE.md` contra referencias de buenas prácticas (documentación oficial de Anthropic y guías de la comunidad) y aplicar todas las mejoras de estructura y seguridad.
+- **Resultado:**
+  - `CLAUDE.md` en español, con secciones nuevas: entorno Windows, flujo de trabajo con IA (plan antes de editar, no tocar pruebas para que pasen, sin commits sin aprobación), convención de commits y seguridad. Las reglas críticas se marcaron con `IMPORTANT`.
+  - El backend pasó a `api/CLAUDE.md`, que Claude carga solo al trabajar en `api/`, con convenciones C# y la receta para agregar un endpoint.
+  - `.claude/settings.json` con permisos: pruebas y `git diff/log` sin preguntar; commit, push e instalaciones con aprobación; prohibido leer `.env.local`, correos reales y bases `.db`.
+  - Comandos `/bitacora` y `/pruebas` en `.claude/commands/`. `.gitignore` excluye `settings.local.json` y `CLAUDE.local.md`.
+  - `api/run-tests.ps1` avisa si `Gastos.Api` está corriendo, porque eso bloquea las DLL (`MSB3021`).
+- **Validación:**
+  - Cada ruta, clase y comando citado se verificó contra el repositorio. Se corrigieron nombres de archivo desactualizados: los archivos están en camelCase (`httpGateway.ts`).
+  - JSON de permisos validado y diff revisado manualmente.
+- **Aprendizaje:** el `CLAUDE.md` se mantiene como un prompt. Debe ser corto y verificable, y cada línea tiene que cambiar el comportamiento de la IA; el detalle va en `docs/`.
+
 ---
 
 ## Aprendizajes generales

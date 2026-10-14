@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code: configuración y memoria personales (no se comparten)
+.claude/settings.local.json
+CLAUDE.local.md

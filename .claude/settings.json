@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm test:*)",
+      "Bash(npm run check)",
+      "Bash(npm run lint)",
+      "Bash(npm run build)",
+      "Bash(npx vitest run:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet build:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(tasklist:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git checkout:*)",
+      "Bash(npm install:*)",
+      "Bash(dotnet add:*)",
+      "Bash(Stop-Process:*)",
+      "Bash(taskkill:*)"
+    ],
+    "deny": [
+      "Read(./.env.local)",
+      "Read(./**/*.local)",
+      "Edit(./.env.local)",
+      "Read(../correos/**)",
+      "Read(../correos-demo-bac/**)",
+      "Read(../correos.eml)",
+      "Read(./**/*.db)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(rm -rf:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ]
+  }
+}

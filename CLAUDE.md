@@ -1,73 +1,103 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guía para Claude Code en este repositorio. Mantenela corta: cada línea debe cambiar cómo trabaja Claude. El detalle vive en `docs/` y en `api/CLAUDE.md` (se carga solo al trabajar en `api/`).
 
-## Project
+## Proyecto
 
-"Mis Gastos" — personal expense tracker. Frontend: React 19 + TypeScript + Vite 8 (no UI/chart libraries) in `src/`. Optional backend: ASP.NET Core 10 + EF Core/SQLite in `api/` (see `api/README.md`). Data lives in `localStorage` by default, or in the API when `.env.local` sets `VITE_DATA_SOURCE=api`. UI text, code comments, test names and docs are in **Spanish**; keep new code consistent with that.
+"Mis Gastos": gestor de gastos personales. Frontend React 19 + TypeScript + Vite 8 (sin librerías de UI ni de gráficos) en `src/`. Backend opcional ASP.NET Core 10 + EF Core/SQLite en `api/` (ver `api/CLAUDE.md`). Los datos viven en `localStorage` por defecto, o en la API si `.env.local` define `VITE_DATA_SOURCE=api`.
 
-Requires Node 20.19+ (see `.nvmrc`).
+- **Idioma:** textos de UI, comentarios, nombres de pruebas, commits y docs en **español**. Identificadores de código, comandos y rutas en inglés.
+- Requiere Node 20.19+ (`.nvmrc`) y .NET 10 SDK.
 
-## Commands
+## Comandos
 
 ```bash
-npm run dev                          # Vite dev server at http://localhost:5173
-npm run build                        # tsc -b && vite build (type-check + bundle to dist/)
-npm run lint                         # oxlint (config: .oxlintrc.json)
-npm test                             # vitest run (all tests)
-npx vitest run src/__tests__/stats.test.ts   # single test file
-npx vitest run -t "elimina un gasto"         # single test by name
+npm run dev                          # Vite en http://localhost:5173
+npm run check                        # lint + pruebas + build: el gate de CI
+npm test                             # vitest run (npm run test:watch para modo watch)
+npm run build                        # tsc -b && vite build
+npm run lint                         # oxlint (.oxlintrc.json)
+npx vitest run src/__tests__/stats.test.ts   # un archivo
+npx vitest run -t "elimina un gasto"         # una prueba por nombre
 ```
 
-Tests live in `src/__tests__/`, mirrored by layer (`domain/`, `application/`, `infrastructure/`, `presentation/`), and run in the `node` environment (no DOM, no React Testing Library). They are **excluded** from `tsconfig.app.json`, so `npm run build` does not type-check them. Use `fakeServices()` from `__tests__/fakes.ts` for deterministic ids/clock and `cats`/`exp()` from `fixtures.ts`.
+Pruebas en `src/__tests__/`, espejadas por capa (`domain/`, `application/`, `infrastructure/`, `presentation/`), en entorno `node` (sin DOM ni React Testing Library). Están **excluidas** de `tsconfig.app.json`: `npm run build` no las type-checkea. Usá `fakeServices()` de `__tests__/fakes.ts` (ids y reloj deterministas), `cats`/`exp()` de `fixtures.ts`, y los correos de ejemplo de `__tests__/samples/`.
 
-## Architecture
+Frontend contra el backend: `Copy-Item .env.example .env.local`, levantar la API (ver `api/CLAUDE.md`) y `npm run dev`. Borrar `.env.local` vuelve a `localStorage`.
 
-Clean Architecture in four layers (full diagram and ADR-009 in `docs/ARQUITECTURA.md`). Allowed imports, **enforced by `src/__tests__/architecture.test.ts`**:
+## Entorno (Windows)
 
-| Layer | May import from |
+- Shell principal: **PowerShell**. Rutas con `\` en comandos de Windows; en el código, `/`.
+- Puertos: frontend `5173`, API `5080`.
+- **IMPORTANT:** antes de `dotnet test` o `dotnet build`, verificá que `Gastos.Api` no esté corriendo. Si lo está, Windows bloquea sus DLL y `Gastos.IntegrationTests` no compila (`MSB3021` / "file is locked by Gastos.Api"). Pedime que la detenga; no la mates sin avisar.
+- `api\run-tests.ps1` corre todas las pruebas del backend y guarda `TestResults\tests-<fecha>.log` + `.trx` para analizarlos.
+
+## Arquitectura
+
+Clean Architecture en cuatro capas (diagrama y ADR-009 en `docs/ARQUITECTURA.md`). Imports permitidos, **verificados por `src/__tests__/architecture.test.ts`**:
+
+| Capa | Puede importar de |
 |---|---|
-| `domain/` | `domain` only — no React, no I/O |
-| `application/` | `domain` — no React |
+| `domain/` | solo `domain`: sin React, sin I/O |
+| `application/` | `domain`: sin React |
 | `infrastructure/` | `domain`, `application` |
-| `presentation/` | `domain`, `application` (never `infrastructure`) |
-| `main.tsx` | anything — it is the composition root |
+| `presentation/` | `domain`, `application` (nunca `infrastructure`) |
+| `main.tsx` | cualquiera: es el composition root |
 
-Cross-layer imports go through the barrels `domain/index.ts` and `application/index.ts`; add new exports there.
+Los imports entre capas pasan por los barrels `domain/index.ts` y `application/index.ts`; agregá ahí los exports nuevos. Archivos en camelCase (`httpGateway.ts`), aunque exporten clases (`HttpGateway`).
 
-- **`domain/`** — `entities/` (types; `PAYMENT_METHODS` is a value tuple only, UI labels live in `presentation/labels.ts`), `rules/` (`validateX` returns a `ValidationErrors<T>` map; `normalizeX` gives the canonical persisted shape; `countExpensesInCategory` for ADR-008), `services/stats.ts` (dashboard aggregations), `shared/` (dates, `roundMoney`, `hasErrors`).
-- **`application/`** — `ports/` defines `StoreGateway` (async `load()` / `persist(action, next)`), `IdGenerator`, `Clock` and `AppDependencies`. `useCases/` are **pure functions** `(state, …args, services) → Decision`, where `Decision` is `{ ok: false, errors }` or `{ ok: true, action }` carrying a fully built entity (id, timestamps, normalized fields). `state/storeReducer.ts` only applies actions — it does not validate or generate ids/dates.
-- **`infrastructure/`** — `container.ts` `createDependencies({ dataSource, apiUrl, storage })` picks the gateway: `http/HttpGateway` (maps each `StoreAction` to a REST call, throws `ApiError` with the Problem Details message) when `dataSource === 'api'`, otherwise `storage/LocalStorageGateway` over `LocalStorageRepository` (versioned keys `gastos:v1:categories` / `gastos:v1:expenses`, categories seeded from `storage/seed.ts`). `browserStorage()` falls back to `MemoryStorage`.
-- **`presentation/`** — `hooks/useExpenseStore(deps)` is a thin React adapter: it loads state via `gateway.load()` (exposes `status: 'loading' | 'ready' | 'error'`), runs a use case, dispatches the action if `ok`, then calls `gateway.persist()` optimistically; on failure it sets `syncError` and reloads. `App.tsx` receives `deps` from `main.tsx` and passes store data/commands down as props (no Context). `format.ts` holds display formatting (`formatCurrency`, `formatDate`, `monthLabel`); `labels.ts` maps domain values to Spanish UI text. Form logic goes in hooks (`useExpenseForm`) and shared markup in small components (`Field`); reset component state with `key`, never with a suppressed `useEffect`.
+- **`domain/`**: `entities/` (tipos; `PAYMENT_METHODS` es solo una tupla de valores, las etiquetas de UI viven en `presentation/labels.ts`; `defaultCategories.ts`), `rules/` (`validateX` devuelve un mapa `ValidationErrors<T>`; `normalizeX` da la forma canónica persistida; `countExpensesInCategory` para ADR-008; `merchantCategory`), `services/stats.ts` (agregaciones del dashboard) y `services/insights.ts` (análisis del mes: fijos vs variables, proyección, insights; ADR-013), `shared/` (fechas, `roundMoney`, `hasErrors`).
+- **`application/`**: `ports/` define `StoreGateway` (async `load()` / `persist(action, next)`), `IdGenerator`, `Clock`, `BankNotificationReader` y `AppDependencies`. `useCases/` son **funciones puras** `(state, …args, services) → Decision`, donde `Decision` es `{ ok: false, errors }` o `{ ok: true, action }` con la entidad completa (id, timestamps, campos normalizados). `state/storeReducer.ts` solo aplica acciones: no valida ni genera ids/fechas.
+- **`infrastructure/`**: `container.ts` `createDependencies({ dataSource, apiUrl, storage })` elige el gateway: `http/httpGateway.ts` (cada `StoreAction` → llamada REST; lanza `ApiError` con el mensaje de Problem Details) si `dataSource === 'api'`, si no `storage/localStorageGateway.ts` sobre `localStorageRepository.ts` (claves versionadas `gastos:v1:categories` / `gastos:v1:expenses`, semilla en `storage/seed.ts`). `browserStorage()` cae a `MemoryStorage`. `email/` implementa la lectura de correos bancarios.
+- **`presentation/`**: `hooks/useExpenseStore(deps)` es un adaptador React delgado: carga con `gateway.load()` (expone `status: 'loading' | 'ready' | 'error'`), corre un caso de uso, despacha la acción si `ok` y llama `gateway.persist()` en forma optimista; si falla, setea `syncError` y recarga. `App.tsx` recibe `deps` de `main.tsx` y pasa datos/comandos por props (sin Context). `format.ts` = formato de pantalla; `labels.ts` = textos en español. Lógica de formularios en hooks (`useExpenseForm`), markup compartido en componentes chicos (`Field`); reiniciar estado con `key`, nunca con un `useEffect` silenciado.
+- **Administración** (`pages/AdminPage.tsx`, menú `layout/Sidebar.tsx`): importar correos bancarios, respaldo JSON y borrar todo. La importación es el caso de uso puro `importBankEmails` sobre el puerto `BankNotificationReader`, con perfiles por banco en `infrastructure/email/bankProfiles.ts`. Detalle en ADR-012 y ADR-014.
 
-To add a feature: rule in `domain/rules` → use case in `application/useCases` (+ action in `storeReducer` if new) → expose it in `useExpenseStore` → UI in `presentation/components`.
+Para agregar una funcionalidad: regla en `domain/rules` → caso de uso en `application/useCases` (+ acción en `storeReducer` si es nueva) → exponerla en `useExpenseStore` → UI en `presentation/components`. Receta completa en `docs/GUIA_BUENAS_PRACTICAS.md` §6.
 
-## Conventions that matter
+## Convenciones que importan
 
-- **Dates are local `YYYY-MM-DD` strings**, months are `YYYY-MM`. Never use `new Date('YYYY-MM-DD')` (parses as UTC and shifts the day in UTC-6); build dates with `new Date(y, m - 1, d)` or use helpers in `domain/shared/dates.ts`.
-- Never call `new Date()` / `crypto.randomUUID()` inside `domain` or `application` for ids/timestamps — use the injected `Clock` / `IdGenerator`.
-- Amounts are `number` rounded to 2 decimals (`roundMoney`); currency is CRC only.
-- A category with expenses cannot be deleted (`deleteCategory` use case, with a defensive guard in the reducer).
-- TypeScript uses `erasableSyntaxOnly` and `verbatimModuleSyntax`: no enums/parameter properties/namespaces, and use `import type` for type-only imports.
-- Charts are hand-rolled CSS bars / SVG columns; styling is plain CSS with variables in `src/index.css`.
+- **IMPORTANT: las fechas son strings locales `YYYY-MM-DD`** y los meses `YYYY-MM`. Nunca `new Date('YYYY-MM-DD')` (se interpreta en UTC y corre el día en UTC-6); usá `new Date(y, m - 1, d)` o los helpers de `domain/shared/dates.ts`.
+- Nunca `new Date()` / `crypto.randomUUID()` dentro de `domain` o `application` para ids o timestamps: usá `Clock` / `IdGenerator` inyectados.
+- Montos: `number` redondeado a 2 decimales (`roundMoney`); moneda solo CRC.
+- Una categoría con gastos no se puede borrar (caso de uso `deleteCategory`, con guarda defensiva en el reducer).
+- TypeScript con `erasableSyntaxOnly` y `verbatimModuleSyntax`: sin enums, sin parameter properties, sin namespaces; `import type` para imports de solo tipos.
+- Gráficos a mano con barras CSS / columnas SVG; estilos en CSS plano con variables en `src/index.css`.
+- Sin `any`, sin `eslint-disable`, sin `console.log` de depuración, sin números ni textos mágicos repetidos.
 
-## Backend (`api/`)
+## Flujo de trabajo con IA
 
-```bash
-dotnet run --project api/src/Gastos.Api   # http://localhost:5080, seeds gastos.db in Development
-dotnet test api                           # xUnit unit + integration (WebApplicationFactory)
-```
+La IA propone, el desarrollador decide (`docs/MEJORES_PRACTICAS_PROMPTS.md`).
 
-Clean Architecture: `Gastos.Domain` (entities with private setters, `Result<T>`/`Error`), `Gastos.Application` (one file per use case: `XCommand`/`XQuery` + handler implementing `ICommandHandler`/`IQueryHandler`; no MediatR, no DI package), `Gastos.Infrastructure` (EF Core SQLite, repositories, `DataSeeder`), `Gastos.Api` (Minimal API endpoints inject handlers directly; `ResultExtensions.ToHttpResult` maps errors to Problem Details; handlers are auto-registered by reflection in `Composition/ApplicationRegistration.cs`). Validation messages and field keys must match the frontend's (`amount`, `description`, `categoryId`, …). JSON enums are camelCase strings.
+- Para cambios de más de un archivo, **presentá un plan y esperá aprobación** antes de editar.
+- **IMPORTANT:** nunca modifiques, saltes ni borres una prueba para que pase. Si una prueba parece incorrecta, explicá por qué y preguntá.
+- Antes de dar algo por terminado, corré los quality gates y reportá el resultado real (no lo supongas).
+- Si cambia una decisión de arquitectura, actualizá o agregá el ADR en `docs/ARQUITECTURA.md`.
+- Al cerrar una actividad relevante, proponé la entrada para `docs/BITACORA_PROMPTS.md` (comando `/bitacora`).
+- **IMPORTANT:** no hagas `git commit` ni `git push` sin que te lo pida. No agregues dependencias nuevas sin justificar necesidad, licencia y mantenimiento.
 
-## Admin features
+## Commits
 
-`presentation/pages/AdminPage.tsx` (left `layout/Sidebar.tsx`): BAC email import, JSON backup, reset. Email import = port `BankNotificationReader` (application) → `infrastructure/email/EmailNotificationReader` (bank profiles in `bankProfiles.ts` + generic labels tried in priority order, unknown senders by domain; ADR-014), pure use case `importBankEmails` (ids `<source>-<reference>` for idempotency, report `bySource`, USD only with a rate, category via `domain/rules/merchantCategory`). `resetData` = `store/replace` with `defaultCategories()` (domain). New action `expense/import` → `HttpGateway` posts each expense.
+Conventional Commits en español, en imperativo/sustantivo, con scope cuando aplica: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`; scopes usados: `front`, `api`, `ui`, `core`, `import`, `dashboard`. Referenciá el ADR si aplica.
+
+- `feat(import): leer correos de cualquier banco o comercio con perfiles (ADR-014)`
+- `fix(api): validar largo de ids y pruebas de arquitectura .NET`
+
+## Seguridad
+
+- **IMPORTANT:** no leas, muestres ni subas `.env.local` ni otros `*.local`; usá `.env.example` como referencia.
+- Los correos bancarios reales (`../correos/`, archivos `.eml` fuera del repo) contienen datos personales: no los leas ni los copies al repo. Para pruebas usá `src/__tests__/samples/` o datos inventados.
+- No subas bases SQLite (`*.db`), `TestResults/` ni logs: ya están en `.gitignore`.
+- Nunca pongas secretos, tokens ni datos de clientes de Babel en código, pruebas, commits o docs.
 
 ## Quality gates
 
-`npm run check` (oxlint + vitest + build) and `dotnet test api` must pass; both run in `.github/workflows/ci.yml`. Backend architecture rules are enforced by `api/tests/Gastos.UnitTests/ArchitectureTests.cs` (one handler per command/query). Ids are limited to `EntityId.MaxLength` (64).
+`npm run check` y `dotnet test api` deben pasar; ambos corren en `.github/workflows/ci.yml`. Checklist completo antes de commit en `docs/GUIA_BUENAS_PRACTICAS.md` §7.
 
 ## Docs
 
-`docs/ARQUITECTURA.md` (diagrams, data model, ADR-001…011, roadmap), `api/README.md` (backend endpoints and structure), `docs/GUIA_BUENAS_PRACTICAS.md` (where code goes, design patterns, conventions, pre-commit checklist — follow it), `docs/CODE_REVIEW.md`, `docs/BITACORA_PROMPTS.md` (log of AI-assisted activities for the "Objetivo Babel 2026" goal). Update the ADRs when making an architectural change.
+- `docs/ARQUITECTURA.md`: diagramas, modelo de datos, ADR-001…014, roadmap.
+- `docs/GUIA_BUENAS_PRACTICAS.md`: dónde va cada cosa, patrones, convenciones, checklist. Seguila.
+- `docs/MEJORES_PRACTICAS_PROMPTS.md`: cómo usar la IA en este proyecto.
+- `docs/CODE_REVIEW.md`: hallazgos de revisiones anteriores.
+- `docs/BITACORA_PROMPTS.md`: registro de actividades con IA del "Objetivo Babel 2026".
+- `api/README.md` y `api/CLAUDE.md`: backend.
