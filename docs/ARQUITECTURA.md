@@ -210,6 +210,18 @@ Almacenamiento: dos claves en `localStorage`, versionadas:
   - Las reglas de negocio se **duplican** (TS y C#), con los mismos mensajes y claves de campo; la API es la autoridad final.
 - **Consecuencias:** + el mismo frontend funciona con o sin backend; + migrar a SQL Server es cambiar el provider de EF Core; + deuda técnica #1 resuelta. − Reglas duplicadas en dos lenguajes (se mitiga con pruebas en ambos lados). − SQLite no suma `decimal` en SQL: los totales se calculan en memoria. − `EnsureCreated` no versiona el esquema: al pasar a producción se deben usar migraciones.
 
+### ADR-012 · Administración: importar correos de BAC y "Borrar todo"
+- **Contexto:** El objetivo original de EnglobaApp era registrar gastos a partir de las notificaciones bancarias. Se pidió un menú de administración con "borrar todo" e importar una carpeta de correos descargados.
+- **Decisión:**
+  - Puerto `BankNotificationReader` en `application/ports`, implementado por `infrastructure/email/BacNotificationReader`.
+  - El lector decodifica MIME sin dependencias (quoted-printable, base64, charset) y busca los campos **por etiqueta** (Comercio, Fecha, Monto, Referencia), no por la estructura HTML, que el banco cambia con el tiempo.
+  - Caso de uso puro `importBankEmails`: omite devoluciones y pagos, convierte USD solo si se indica el tipo de cambio y asigna la categoría por palabras clave del comercio (`domain/rules/merchantCategory`).
+  - El id del gasto se deriva de la referencia del banco (`bac-<referencia>`): reimportar la misma carpeta no duplica nada.
+  - Los archivos se leen en el navegador (`<input webkitdirectory>`); nada se sube a un servidor salvo los gastos resultantes en modo API.
+  - "Borrar todo" (`resetData`) = `store/replace` con las categorías por defecto, que pasan al dominio (`defaultCategories`). En modo API usa el endpoint de importación existente.
+  - Navegación con menú lateral; las pantallas con lógica propia van en `presentation/pages/`.
+- **Consecuencias:** + Agregar otro banco = otra clase que implemente el puerto. + Importación idempotente. − El formato de BAC se infirió de notificaciones típicas: hay que validarlo con correos reales y ajustar las etiquetas si cambian. − La selección de carpeta funciona en Chrome y Edge; en otros navegadores se usa "Elegir archivos".
+
 Guía de trabajo diario (patrones, convenciones, checklist): [GUIA_BUENAS_PRACTICAS.md](GUIA_BUENAS_PRACTICAS.md). Backend: [api/README.md](../api/README.md).
 
 ## 6. Estructura de carpetas
@@ -217,7 +229,7 @@ Guía de trabajo diario (patrones, convenciones, checklist): [GUIA_BUENAS_PRACTI
 ```
 src/
 ├── domain/                 # Núcleo puro: sin React ni I/O
-│   ├── entities/           # Expense, Category, PaymentMethod (solo valores)
+│   ├── entities/           # Expense, Category, PaymentMethod (solo valores), defaultCategories
 │   ├── rules/              # validar/normalizar gastos y categorías, ADR-008
 │   ├── services/           # stats: filtros, totales, tendencia, resumen mensual
 │   ├── shared/             # dates, money, validation
@@ -231,10 +243,13 @@ src/
 ├── infrastructure/
 │   ├── storage/            # LocalStorageGateway, LocalStorageRepository, KeyValueStorage, seed
 │   ├── http/               # HttpGateway, ApiError (API .NET)
+│   ├── email/              # mimeText (.eml → texto), BacNotificationReader
 │   ├── system/             # cryptoIdGenerator, systemClock
 │   └── container.ts        # createDependencies() / createRepositories()
 ├── presentation/
 │   ├── components/         # UI
+│   ├── layout/             # Sidebar (menú lateral)
+│   ├── pages/              # AdminPage (importar correos, respaldo, borrar todo)
 │   ├── hooks/              # useExpenseStore (adaptador React), useExpenseForm
 │   ├── format.ts           # moneda y fechas es-CR
 │   ├── labels.ts           # textos de UI para valores del dominio

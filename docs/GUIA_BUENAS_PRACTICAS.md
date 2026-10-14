@@ -34,9 +34,12 @@ src/
 ├── infrastructure/             # Implementaciones concretas de los puertos
 │   ├── storage/                # LocalStorageGateway, LocalStorageRepository, KeyValueStorage, seed
 │   ├── http/                   # HttpGateway → API .NET
+│   ├── email/                  # Lectores de correos bancarios (BAC)
 │   ├── system/                 # cryptoIdGenerator, systemClock
 │   └── container.ts            # createDependencies(): arma todo
 ├── presentation/               # React
+│   ├── layout/                 # Sidebar (menú lateral)
+│   ├── pages/                  # Pantallas con lógica propia (AdminPage)
 │   ├── components/             # Componentes de UI (Field, ExpenseForm, Dashboard…)
 │   ├── hooks/                  # useExpenseStore (adaptador), useExpenseForm (lógica de formulario)
 │   ├── format.ts               # Moneda y fechas para mostrar (es-CR)
@@ -57,6 +60,8 @@ src/
 | Algo que habla con el navegador, la red o el reloj | `infrastructure` | `HttpGateway`, `LocalStorageGateway`, `systemClock` |
 | La interfaz que la infraestructura debe cumplir | `application/ports` | `StoreGateway`, `Clock` |
 | Cómo se ve algo en pantalla | `presentation/components` | `Dashboard`, `Field` |
+| Una pantalla completa con varias secciones | `presentation/pages` | `AdminPage` |
+| Leer un formato externo (correo de un banco) | `infrastructure/email` + puerto en `application/ports` | `BacNotificationReader` |
 | Estado o lógica solo de UI | `presentation/hooks` | `useExpenseForm` |
 | Texto visible para el usuario | `presentation/labels.ts` / JSX | `'SINPE Móvil'` |
 | Formato de número o fecha para mostrar | `presentation/format.ts` | `formatCurrency` |

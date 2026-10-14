@@ -15,6 +15,15 @@ MVP en **React 19 + TypeScript + Vite** desarrollado para el Objetivo Babel 2026
 - **Categorías**: 8 categorías por defecto; crear, renombrar, cambiar color y eliminar (bloqueado si tiene gastos).
 - **Dashboard**: total del mes y variación vs mes anterior, promedio diario, cantidad de registros, categoría principal, gasto por categoría y tendencia de 6 meses.
 - **Filtros**: por mes, categoría y texto.
+- **Administración** (menú lateral): importar una carpeta de correos de notificación de **BAC Credomatic** (.eml / .html) como gastos, exportar/importar respaldo JSON y **borrar todo**.
+
+### Importar correos de BAC
+
+1. En Gmail, buscá las notificaciones (por ejemplo `from:notificacionesbaccr.com`), abrí cada una y usá **⋮ → Descargar mensaje** (.eml). Guardalas en una carpeta.
+2. En la app: **Administración → Importar correos de BAC → 📁 Elegir carpeta** (Chrome/Edge) o **Elegir archivos**.
+3. Opcional: indicá el tipo de cambio para incluir compras en dólares.
+
+Se importan solo las compras; las devoluciones y los pagos se omiten y se muestra el motivo. Reimportar la misma carpeta no duplica gastos, y los archivos se leen en el navegador sin subirse a ningún servidor.
 - **Persistencia**: `localStorage` por defecto, o **API .NET 10 + SQLite** ([api/](api/README.md)) con `VITE_DATA_SOURCE=api`. Exportar/importar respaldo JSON.
 
 ## Ejecutar
@@ -72,7 +81,7 @@ Backend en `api/` (Clean Architecture .NET): ver [api/README.md](api/README.md).
 |-----------|-----------|
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — diagrama de capas, modelo de datos, 11 ADRs, roadmap | KR1 |
 | [github.com/kevinsonalo/gastos-app](https://github.com/kevinsonalo/gastos-app) + historial de commits | KR2 |
-| [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 21 actividades con Claude | KR3 |
+| [docs/BITACORA_PROMPTS.md](docs/BITACORA_PROMPTS.md) — 22 actividades con Claude | KR3 |
 | [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) — revisión asistida y verificación | KR3 |
 | [CLAUDE.md](CLAUDE.md) — contexto del proyecto para Claude Code (`/init`) | KR3 |
 | [docs/PROYECTO.md](docs/PROYECTO.md) — ficha del proyecto y estado de KRs | Todos |

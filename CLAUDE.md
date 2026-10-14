@@ -60,6 +60,10 @@ dotnet test api                           # xUnit unit + integration (WebApplica
 
 Clean Architecture: `Gastos.Domain` (entities with private setters, `Result<T>`/`Error`), `Gastos.Application` (one file per use case: `XCommand`/`XQuery` + handler implementing `ICommandHandler`/`IQueryHandler`; no MediatR, no DI package), `Gastos.Infrastructure` (EF Core SQLite, repositories, `DataSeeder`), `Gastos.Api` (Minimal API endpoints inject handlers directly; `ResultExtensions.ToHttpResult` maps errors to Problem Details; handlers are auto-registered by reflection in `Composition/ApplicationRegistration.cs`). Validation messages and field keys must match the frontend's (`amount`, `description`, `categoryId`, …). JSON enums are camelCase strings.
 
+## Admin features
+
+`presentation/pages/AdminPage.tsx` (left `layout/Sidebar.tsx`): BAC email import, JSON backup, reset. Email import = port `BankNotificationReader` (application) → `infrastructure/email/BacNotificationReader` (label-based parsing over `mimeText.parseEmail`), pure use case `importBankEmails` (ids `bac-<reference>` for idempotency, USD only with a rate, category via `domain/rules/merchantCategory`). `resetData` = `store/replace` with `defaultCategories()` (domain). New action `expense/import` → `HttpGateway` posts each expense.
+
 ## Quality gates
 
 `npm run check` (oxlint + vitest + build) and `dotnet test api` must pass; both run in `.github/workflows/ci.yml`. Backend architecture rules are enforced by `api/tests/Gastos.UnitTests/ArchitectureTests.cs` (one handler per command/query). Ids are limited to `EntityId.MaxLength` (64).
