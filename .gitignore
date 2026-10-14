@@ -26,3 +26,8 @@ dist-ssr
 # Claude Code: configuración y memoria personales (no se comparten)
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Playwright (E2E)
+/test-results/
+/playwright-report/
+/playwright/.cache/

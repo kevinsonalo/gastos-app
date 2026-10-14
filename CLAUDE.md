@@ -19,6 +19,7 @@ npm run build                        # tsc -b && vite build
 npm run lint                         # oxlint (.oxlintrc.json)
 npx vitest run src/__tests__/stats.test.ts   # un archivo
 npx vitest run -t "elimina un gasto"         # una prueba por nombre
+npm run test:e2e                     # E2E de UI con Playwright (e2e/, Vite propio en :5174 con localStorage)
 ```
 
 Pruebas en `src/__tests__/`, espejadas por capa (`domain/`, `application/`, `infrastructure/`, `presentation/`), en entorno `node` (sin DOM ni React Testing Library). Están **excluidas** de `tsconfig.app.json`: `npm run build` no las type-checkea. Usá `fakeServices()` de `__tests__/fakes.ts` (ids y reloj deterministas), `cats`/`exp()` de `fixtures.ts`, y los correos de ejemplo de `__tests__/samples/`.
