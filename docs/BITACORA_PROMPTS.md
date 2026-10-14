@@ -32,6 +32,7 @@
 | 20 | Backend .NET 10 y conexión del frontend (prueba de datos) | `api/`, ADR-011, `HttpGateway` | 28 pruebas unitarias C#, 77 Vitest, E2E React ↔ API |
 | 22 | Menú lateral, importación de correos BAC y "Borrar todo" | ADR-012, `AdminPage`, `BacNotificationReader` | 104 Vitest + E2E local y con API |
 | 21 | Revisión integral de buenas prácticas (front + back) y CI | `CODE_REVIEW.md` #16–23, `ci.yml`, `ArchitectureTests.cs`, Guía §8–9 | `dotnet test` + `npm run check` |
+| 24 | Importación de correos de cualquier banco o comercio | ADR-014, `EmailNotificationReader`, `bankProfiles.ts` | 135 Vitest + `npm run check` |
 
 ---
 
@@ -170,6 +171,16 @@
   - Verificación visual con Playwright.
 - **Aprendizaje:** probar las reglas con datos realistas, no solo con casos de prueba, sacó a la luz errores que las pruebas unitarias no veían.
 
+
+### 24. Importación de correos de cualquier banco o comercio
+- **Prompt:** "Hacer que no sea solo del BAC, que pueda recibir cualquier otro banco o gasto leyendo los correos."
+- **Resultado:**
+  - `EmailNotificationReader` con perfiles por banco (BAC, BCR, BN, Popular, Davivienda, Promerica, Lafise) y etiquetas genéricas; remitentes sin perfil se leen por dominio (ADR-014).
+  - Detección de SINPE y transferencias por asunto y tipo; reporte de importación por origen.
+- **Validación:**
+  - 11 pruebas nuevas (BCR, SINPE del BN, recibo de Uber, promoción sin monto, carpeta mixta) y las 9 de BAC sin cambios de resultado: los ids `bac-<referencia>` ya importados se mantienen.
+  - `npm run check` en verde (lint, 135 pruebas, build). Error atrapado por el build y no por las pruebas: propiedades de parámetro en el constructor, prohibidas por `erasableSyntaxOnly`.
+- **Pendiente:** validar las etiquetas de cada banco con correos reales.
 ---
 
 ## Aprendizajes generales

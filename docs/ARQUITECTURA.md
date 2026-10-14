@@ -234,6 +234,17 @@ Almacenamiento: dos claves en `localStorage`, versionadas:
   - Navegación: clic en una categoría abre la lista de gastos filtrada; clic en un mes de la tendencia cambia el resumen. El selector de mes es un `<select>` en español.
 - **Consecuencias:** + Indicadores que no engañan y una proyección realista. + Insights sin IA en tiempo de ejecución: son reglas explicables y probadas. − La detección de fijos necesita 3 meses de historia y puede fallar con cobros irregulares.
 
+### ADR-014 · Importar correos de cualquier banco o comercio con perfiles
+- **Contexto:** El lector de ADR-012 solo reconocía BAC. Los gastos también llegan por correo desde otros bancos (BCR, BN, Popular…), comprobantes SINPE y recibos de comercios.
+- **Decisión:**
+  - `EmailNotificationReader` reemplaza al lector de BAC en `container.ts`. Implementa el mismo puerto `BankNotificationReader`: la aplicación y la UI no cambian de forma.
+  - Cada banco es un **perfil** (`bankProfiles.ts`): nombre, cómo reconocerlo y etiquetas propias opcionales. Agregar un banco es agregar un perfil, sin clases nuevas.
+  - Las etiquetas genéricas (Comercio/Establecimiento/Beneficiario, Monto/Importe/Total, Referencia/Comprobante/Autorización…) se prueban **en orden de prioridad**, no por posición en el texto. Así BAC sigue tomando "Referencia" antes que "Autorización" y los ids ya importados no cambian.
+  - Remitentes sin perfil (`includeUnknownSenders`): el origen es el dominio del remitente (`uber.com` → `uber`) y el comercio, su nombre si el correo no trae "Comercio". Solo se aceptan si traen monto y fecha; las promociones sin monto se omiten.
+  - El medio de pago se detecta en el asunto y el tipo (SINPE, transferencia; si no, tarjeta), nunca en el pie del correo, que suele promocionar SINPE.
+  - El reporte de importación cuenta los gastos por origen (`bySource`).
+- **Consecuencias:** + Una carpeta con correos de varios bancos se importa de una vez. + Ids estables por origen y referencia: reimportar no duplica. − Un correo de comercio con "Total" que no sea una compra (p. ej. un estado de cuenta) podría importarse; el reporte lo muestra y se puede borrar. − Las etiquetas de cada banco se infirieron de formatos típicos: hay que validarlas con correos reales.
+
 Guía de trabajo diario (patrones, convenciones, checklist): [GUIA_BUENAS_PRACTICAS.md](GUIA_BUENAS_PRACTICAS.md). Backend: [api/README.md](../api/README.md).
 
 ## 6. Estructura de carpetas
@@ -255,7 +266,7 @@ src/
 ├── infrastructure/
 │   ├── storage/            # LocalStorageGateway, LocalStorageRepository, KeyValueStorage, seed
 │   ├── http/               # HttpGateway, ApiError (API .NET)
-│   ├── email/              # mimeText (.eml → texto), BacNotificationReader
+│   ├── email/              # mimeText, EmailNotificationReader + perfiles por banco
 │   ├── system/             # cryptoIdGenerator, systemClock
 │   └── container.ts        # createDependencies() / createRepositories()
 ├── presentation/

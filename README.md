@@ -15,12 +15,14 @@ MVP en **React 19 + TypeScript + Vite** desarrollado para el Objetivo Babel 2026
 - **Categorías**: 8 categorías por defecto; crear, renombrar, cambiar color y eliminar (bloqueado si tiene gastos).
 - **Dashboard**: total del mes y variación vs mes anterior, promedio diario, cantidad de registros, categoría principal, gasto por categoría y tendencia de 6 meses.
 - **Filtros**: por mes, categoría y texto.
-- **Administración** (menú lateral): importar una carpeta de correos de notificación de **BAC Credomatic** (.eml / .html) como gastos, exportar/importar respaldo JSON y **borrar todo**.
+- **Administración** (menú lateral): importar una carpeta de correos de notificación de **cualquier banco o comercio** (.eml / .html) como gastos, exportar/importar respaldo JSON y **borrar todo**.
 
-### Importar correos de BAC
+### Importar correos de bancos y comercios
 
-1. En Gmail, buscá las notificaciones (por ejemplo `from:notificacionesbaccr.com`), abrí cada una y usá **⋮ → Descargar mensaje** (.eml). Guardalas en una carpeta.
-2. En la app: **Administración → Importar correos de BAC → 📁 Elegir carpeta** (Chrome/Edge) o **Elegir archivos**.
+1. En Gmail, buscá las notificaciones (por ejemplo `from:notificacionesbaccr.com` o `subject:SINPE`), abrí cada una y usá **⋮ → Descargar mensaje** (.eml). Guardalas en una carpeta.
+2. En la app: **Administración → Importar correos de bancos y comercios → 📁 Elegir carpeta** (Chrome/Edge) o **Elegir archivos**.
+
+Reconoce por nombre **BAC, BCR, BN, Banco Popular, Davivienda, Promerica y Lafise**. De otros bancos o comercios (Uber, tiendas, SINPE) importa los correos que traen un monto y una fecha, usando el remitente como comercio si el correo no lo indica. Agregar un banco = un perfil en `infrastructure/email/bankProfiles.ts` (ADR-014).
 3. Opcional: indicá el tipo de cambio para incluir compras en dólares.
 
 Se importan solo las compras; las devoluciones y los pagos se omiten y se muestra el motivo. Reimportar la misma carpeta no duplica gastos, y los archivos se leen en el navegador sin subirse a ningún servidor.

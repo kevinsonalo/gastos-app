@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { importBankEmails, resetData, storeReducer, type BankNotificationReader, type BankTransaction, type StoreState } from '../../application'
 import { categoryForMerchant, defaultCategories } from '../../domain'
 import { BacNotificationReader } from '../../infrastructure/email/bacNotificationReader'
+import { EmailNotificationReader } from '../../infrastructure/email/emailNotificationReader'
+import { bcrEmail, bnSinpeEmail, merchantReceipt, promoEmail } from '../samples/otherEmails'
 import { fakeServices } from '../fakes'
 import { exp } from '../fixtures'
 import { bacEml, bacSavedHtml, unrelatedEmail } from '../samples/bacEmails'
@@ -56,6 +58,21 @@ describe('importBankEmails', () => {
       date: '2026-10-12',
       paymentMethod: 'card',
     })
+  })
+
+  it('importa una carpeta con varios bancos y comercios y cuenta por origen (ADR-014)', () => {
+    const files = [
+      { name: 'bac.eml', content: bacEml() },
+      { name: 'bcr.eml', content: bcrEmail },
+      { name: 'bn.eml', content: bnSinpeEmail },
+      { name: 'uber.eml', content: merchantReceipt },
+      { name: 'promo.eml', content: promoEmail },
+    ]
+    const { decision, report } = importBankEmails(base, files, new EmailNotificationReader(), services)
+    expect(report).toMatchObject({ read: 5, imported: 4, bySource: { BAC: 1, BCR: 1, BN: 1, uber: 1 } })
+    expect(report.skipped.map((s) => s.file)).toEqual(['promo.eml'])
+    if (!decision.ok || decision.action.type !== 'expense/import') throw new Error('esperaba expense/import')
+    expect(decision.action.expenses.find((e) => e.id.startsWith('bn-'))?.paymentMethod).toBe('sinpe')
   })
 
   it('no duplica al reimportar la misma carpeta', () => {

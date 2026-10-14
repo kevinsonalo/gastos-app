@@ -1,4 +1,5 @@
 import {
+  DEFAULT_PAYMENT_METHOD,
   MAX_DESCRIPTION_LENGTH,
   categoryForMerchant,
   defaultCategories,
@@ -27,6 +28,8 @@ export interface EmailImportReport {
   read: number
   imported: number
   duplicates: number
+  /** Gastos importados por origen, p. ej. { BAC: 8, BCR: 3, uber: 1 }. */
+  bySource: Record<string, number>
   skipped: Array<{ file: string; reason: string }>
 }
 
@@ -48,7 +51,7 @@ export function importBankEmails(
   { clock }: { clock: Clock },
   options: EmailImportOptions = {},
 ): { decision: Decision; report: EmailImportReport } {
-  const report: EmailImportReport = { read: files.length, imported: 0, duplicates: 0, skipped: [] }
+  const report: EmailImportReport = { read: files.length, imported: 0, duplicates: 0, bySource: {}, skipped: [] }
   const existingIds = new Set(state.expenses.map((e) => e.id))
   const expenses: Expense[] = []
   const now = clock.now()
@@ -89,7 +92,7 @@ export function importBankEmails(
       description: description.slice(0, MAX_DESCRIPTION_LENGTH),
       categoryId: category?.id ?? '',
       date: tx.date,
-      paymentMethod: 'card' as const,
+      paymentMethod: tx.paymentMethod ?? DEFAULT_PAYMENT_METHOD,
     }
     const errors = validateExpense(input, state.categories)
     if (hasErrors(errors)) {
@@ -99,6 +102,7 @@ export function importBankEmails(
 
     expenses.push({ id, ...normalizeExpense(input), createdAt: now, updatedAt: now })
     existingIds.add(id)
+    report.bySource[tx.bank] = (report.bySource[tx.bank] ?? 0) + 1
   }
 
   report.imported = expenses.length

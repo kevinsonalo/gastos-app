@@ -28,6 +28,7 @@ describe('BacNotificationReader', () => {
       currency: 'CRC',
       merchant: 'AUTOMERCADO TRES RIOS',
       kind: 'COMPRA',
+      paymentMethod: 'card',
     })
   })
 

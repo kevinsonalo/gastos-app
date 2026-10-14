@@ -9,7 +9,7 @@ interface Props {
 }
 
 /**
- * Importa notificaciones de BAC desde una carpeta de correos descargados (.eml, .html, .txt).
+ * Importa notificaciones de pago de cualquier banco o comercio desde una carpeta de correos descargados (.eml, .html, .txt).
  * Los archivos se leen en el navegador: no se suben a ningún servidor.
  */
 export function EmailImport({ onImport }: Props) {
@@ -41,11 +41,12 @@ export function EmailImport({ onImport }: Props) {
 
   return (
     <section className="card">
-      <h2>Importar correos de BAC</h2>
+      <h2>Importar correos de bancos y comercios</h2>
       <p className="muted">
-        Elegí la carpeta donde descargaste las notificaciones de transacción (.eml desde Gmail con "Descargar
-        mensaje", o .html). Cada compra se registra como gasto con su categoría sugerida; reimportar la misma carpeta
-        no duplica gastos.
+        Elegí la carpeta donde descargaste las notificaciones de compra (.eml desde Gmail con "Descargar mensaje", o
+        .html). Reconoce BAC, BCR, BN, Banco Popular, Davivienda, Promerica y Lafise; de otros bancos o comercios lee
+        los correos que traen monto y fecha. Cada compra se registra con su categoría sugerida y reimportar la misma
+        carpeta no duplica gastos.
       </p>
 
       <div className="import-row">
@@ -87,6 +88,14 @@ export function EmailImport({ onImport }: Props) {
             {report.duplicates > 0 && <> · {report.duplicates} ya existían</>}
             {report.skipped.length > 0 && <> · {report.skipped.length} omitido(s)</>}
           </p>
+          {report.imported > 0 && (
+            <p className="muted">
+              Por origen:{' '}
+              {Object.entries(report.bySource)
+                .map(([source, count]) => `${source} ${count}`)
+                .join(' · ')}
+            </p>
+          )}
           {report.skipped.length > 0 && (
             <ul className="skipped">
               {report.skipped.slice(0, MAX_SKIPPED_SHOWN).map((s) => (

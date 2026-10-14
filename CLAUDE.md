@@ -62,7 +62,7 @@ Clean Architecture: `Gastos.Domain` (entities with private setters, `Result<T>`/
 
 ## Admin features
 
-`presentation/pages/AdminPage.tsx` (left `layout/Sidebar.tsx`): BAC email import, JSON backup, reset. Email import = port `BankNotificationReader` (application) → `infrastructure/email/BacNotificationReader` (label-based parsing over `mimeText.parseEmail`), pure use case `importBankEmails` (ids `bac-<reference>` for idempotency, USD only with a rate, category via `domain/rules/merchantCategory`). `resetData` = `store/replace` with `defaultCategories()` (domain). New action `expense/import` → `HttpGateway` posts each expense.
+`presentation/pages/AdminPage.tsx` (left `layout/Sidebar.tsx`): BAC email import, JSON backup, reset. Email import = port `BankNotificationReader` (application) → `infrastructure/email/EmailNotificationReader` (bank profiles in `bankProfiles.ts` + generic labels tried in priority order, unknown senders by domain; ADR-014), pure use case `importBankEmails` (ids `<source>-<reference>` for idempotency, report `bySource`, USD only with a rate, category via `domain/rules/merchantCategory`). `resetData` = `store/replace` with `defaultCategories()` (domain). New action `expense/import` → `HttpGateway` posts each expense.
 
 ## Quality gates
 
