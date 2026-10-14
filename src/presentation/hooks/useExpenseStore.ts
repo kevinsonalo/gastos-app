@@ -8,11 +8,15 @@ import {
   deleteExpense,
   exportBackup,
   importBackup,
+  importBankEmails,
+  resetData,
   storeReducer,
   updateCategory,
   updateExpense,
   type AppDependencies,
   type Decision,
+  type EmailFile,
+  type EmailImportOptions,
   type Result,
 } from '../../application'
 import type { CategoryInput, ExpenseInput } from '../../domain'
@@ -30,7 +34,7 @@ const errorMessage = (error: unknown) => (error instanceof Error ? error.message
  */
 export function useExpenseStore(deps: AppDependencies) {
   // Dependencias estables durante toda la vida del componente.
-  const [{ gateway, ids, clock }] = useState(deps)
+  const [{ gateway, ids, clock, bankReader }] = useState(deps)
   const [state, dispatch] = useReducer(storeReducer, EMPTY_STATE)
   const [status, setStatus] = useState<LoadStatus>('loading')
   const [syncError, setSyncError] = useState<string | null>(null)
@@ -89,8 +93,14 @@ export function useExpenseStore(deps: AppDependencies) {
       deleteCategory: (id: string) => run(deleteCategory(state, id)),
       importBackup: (json: string) => run(importBackup(json)),
       exportBackup: () => exportBackup(state, clock),
+      resetData: () => run(resetData()),
+      importBankEmails: (files: EmailFile[], options?: EmailImportOptions) => {
+        const { decision, report } = importBankEmails(state, files, bankReader, { clock }, options)
+        if (report.imported > 0) run(decision)
+        return report
+      },
     }
-  }, [state, status, syncError, gateway, ids, clock, execute, reload])
+  }, [state, status, syncError, gateway, ids, clock, bankReader, execute, reload])
 }
 
 export type ExpenseStore = ReturnType<typeof useExpenseStore>

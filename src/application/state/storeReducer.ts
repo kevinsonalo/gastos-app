@@ -10,6 +10,7 @@ export type StoreAction =
   | { type: 'expense/add'; expense: Expense }
   | { type: 'expense/update'; expense: Expense }
   | { type: 'expense/delete'; id: string }
+  | { type: 'expense/import'; expenses: Expense[] }
   | { type: 'category/add'; category: Category }
   | { type: 'category/update'; category: Category }
   | { type: 'category/delete'; id: string }
@@ -25,6 +26,8 @@ export function storeReducer(state: StoreState, action: StoreAction): StoreState
       return { ...state, expenses: [...state.expenses, action.expense] }
     case 'expense/update':
       return { ...state, expenses: replaceById(state.expenses, action.expense) }
+    case 'expense/import':
+      return { ...state, expenses: [...state.expenses, ...action.expenses] }
     case 'expense/delete':
       return { ...state, expenses: state.expenses.filter((e) => e.id !== action.id) }
     case 'category/add':

@@ -58,6 +58,17 @@ describe('HttpGateway', () => {
     expect(calls[0]).toMatchObject({ method, url: `http://api.test${path}` })
   })
 
+  it('expense/import envía un POST por gasto, en orden', async () => {
+    const { fn, calls } = fakeFetch()
+
+    await new HttpGateway('http://api.test', fn).persist({ type: 'expense/import', expenses: [exp({ id: 'a' }), exp({ id: 'b' })] })
+
+    expect(calls.map((c) => [c.method, c.url, (c.body as { id: string }).id])).toEqual([
+      ['POST', 'http://api.test/api/expenses', 'a'],
+      ['POST', 'http://api.test/api/expenses', 'b'],
+    ])
+  })
+
   it('envía el gasto sin timestamps (los asigna el servidor)', async () => {
     const { fn, calls } = fakeFetch()
     const expense = exp({ id: 'e1', amount: 2500 })

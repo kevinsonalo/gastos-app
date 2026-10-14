@@ -55,6 +55,10 @@ export class HttpGateway implements StoreGateway {
         return this.send('POST', '/api/expenses', expenseBody(action.expense))
       case 'expense/update':
         return this.send('PUT', `/api/expenses/${encodeURIComponent(action.expense.id)}`, expenseBody(action.expense))
+      case 'expense/import':
+        // Uno por uno y en orden: si uno falla, el store recarga y lo ya guardado se conserva.
+        for (const expense of action.expenses) await this.send('POST', '/api/expenses', expenseBody(expense))
+        return
       case 'expense/delete':
         return this.send('DELETE', `/api/expenses/${encodeURIComponent(action.id)}`)
       case 'category/add':

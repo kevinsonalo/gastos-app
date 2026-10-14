@@ -1,5 +1,6 @@
 import type { AppDependencies, StoreGateway } from '../application'
 import type { Category, Expense } from '../domain'
+import { BacNotificationReader } from './email/bacNotificationReader'
 import { HttpGateway } from './http/httpGateway'
 import { browserStorage, type KeyValueStorage } from './storage/keyValueStorage'
 import { LocalStorageGateway } from './storage/localStorageGateway'
@@ -39,6 +40,7 @@ export function createGateway({ dataSource, apiUrl, storage }: DataConfig = {}):
 export function createDependencies(config: DataConfig = {}): AppDependencies {
   return {
     gateway: createGateway(config),
+    bankReader: new BacNotificationReader(),
     ids: cryptoIdGenerator,
     clock: systemClock,
   }

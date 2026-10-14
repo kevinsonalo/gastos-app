@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { BackupControls } from './components/BackupControls'
 import { CategoryManager } from './components/CategoryManager'
 import { Dashboard } from './components/Dashboard'
 import { ExpenseForm } from './components/ExpenseForm'
@@ -7,14 +6,15 @@ import { ExpenseList } from './components/ExpenseList'
 import type { AppDependencies } from '../application'
 import { NO_FILTERS, currentMonth, type Expense, type ExpenseFilters, type ExpenseInput } from '../domain'
 import { useExpenseStore } from './hooks/useExpenseStore'
+import { Sidebar, type Page } from './layout/Sidebar'
+import { AdminPage } from './pages/AdminPage'
 
-type Tab = 'dashboard' | 'expenses' | 'categories'
-
-const TABS: Array<{ id: Tab; label: string }> = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'expenses', label: 'Gastos' },
-  { id: 'categories', label: 'Categorías' },
-]
+const TITLES: Record<Page, string> = {
+  dashboard: 'Dashboard',
+  expenses: 'Gastos',
+  categories: 'Categorías',
+  admin: 'Administración',
+}
 
 interface Props {
   deps: AppDependencies
@@ -22,7 +22,7 @@ interface Props {
 
 export default function App({ deps }: Props) {
   const store = useExpenseStore(deps)
-  const [tab, setTab] = useState<Tab>('dashboard')
+  const [page, setPage] = useState<Page>('dashboard')
   const [editing, setEditing] = useState<Expense | null>(null)
   const [filters, setFilters] = useState<ExpenseFilters>({ ...NO_FILTERS, month: currentMonth() })
 
@@ -39,73 +39,62 @@ export default function App({ deps }: Props) {
   }
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <h1>💸 Mis Gastos</h1>
-        <nav role="tablist">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              role="tab"
-              aria-selected={tab === t.id}
-              className={tab === t.id ? 'tab active' : 'tab'}
-              onClick={() => setTab(t.id)}
-            >
-              {t.label}
+    <div className="shell">
+      <Sidebar current={page} storageLabel={store.storageLabel} onNavigate={setPage} />
+
+      <div className="content">
+        <header className="page-header">
+          <h1>{TITLES[page]}</h1>
+        </header>
+
+        {store.syncError && (
+          <div className="alert" role="alert">
+            <span>{store.syncError}</span>
+            <button type="button" onClick={store.dismissError} aria-label="Cerrar aviso">
+              ✕
             </button>
-          ))}
-        </nav>
-      </header>
+          </div>
+        )}
 
-      {store.syncError && (
-        <div className="alert" role="alert">
-          <span>{store.syncError}</span>
-          <button type="button" onClick={store.dismissError} aria-label="Cerrar aviso">
-            ✕
-          </button>
-        </div>
-      )}
+        {store.status === 'loading' && <p className="card empty">Cargando datos…</p>}
 
-      {store.status === 'loading' && <p className="card empty">Cargando datos…</p>}
+        {store.status === 'error' && (
+          <section className="card empty">
+            <p>No se pudieron cargar los datos.</p>
+            <button type="button" className="primary" onClick={store.retry}>
+              Reintentar
+            </button>
+          </section>
+        )}
 
-      {store.status === 'error' && (
-        <section className="card empty">
-          <p>No se pudieron cargar los datos.</p>
-          <button type="button" className="primary" onClick={store.retry}>
-            Reintentar
-          </button>
-        </section>
-      )}
+        {store.status === 'ready' && (
+          <main>
+            {page === 'dashboard' && (
+              <Dashboard expenses={store.expenses} categories={store.categories} onAddClick={() => setPage('expenses')} />
+            )}
 
-      {store.status === 'ready' && (
-        <main>
-          {tab === 'dashboard' && (
-            <Dashboard expenses={store.expenses} categories={store.categories} onAddClick={() => setTab('expenses')} />
-          )}
+            {page === 'expenses' && (
+              <div className="expenses-layout">
+                <ExpenseForm
+                  key={editing?.id ?? 'new'}
+                  categories={store.categories}
+                  editing={editing}
+                  onSubmit={handleSubmit}
+                  onCancelEdit={() => setEditing(null)}
+                />
+                <ExpenseList
+                  expenses={store.expenses}
+                  categories={store.categories}
+                  filters={filters}
+                  editingId={editing?.id ?? null}
+                  onFiltersChange={setFilters}
+                  onEdit={setEditing}
+                  onDelete={handleDelete}
+                />
+              </div>
+            )}
 
-          {tab === 'expenses' && (
-            <div className="expenses-layout">
-              <ExpenseForm
-                key={editing?.id ?? 'new'}
-                categories={store.categories}
-                editing={editing}
-                onSubmit={handleSubmit}
-                onCancelEdit={() => setEditing(null)}
-              />
-              <ExpenseList
-                expenses={store.expenses}
-                categories={store.categories}
-                filters={filters}
-                editingId={editing?.id ?? null}
-                onFiltersChange={setFilters}
-                onEdit={setEditing}
-                onDelete={handleDelete}
-              />
-            </div>
-          )}
-
-          {tab === 'categories' && (
-            <>
+            {page === 'categories' && (
               <CategoryManager
                 categories={store.categories}
                 expenses={store.expenses}
@@ -113,19 +102,14 @@ export default function App({ deps }: Props) {
                 onUpdate={store.updateCategory}
                 onDelete={store.deleteCategory}
               />
-              <section className="card">
-                <h2>Respaldo de datos</h2>
-                <p className="muted">{store.storageLabel}. Exportá un respaldo para moverlos o protegerlos.</p>
-                <BackupControls onExport={store.exportBackup} onImport={store.importBackup} />
-              </section>
-            </>
-          )}
-        </main>
-      )}
+            )}
 
-      <footer className="muted">
-        {store.storageLabel} · Objetivo Babel 2026 · React + TypeScript · Desarrollado con apoyo de Claude
-      </footer>
+            {page === 'admin' && <AdminPage store={store} />}
+          </main>
+        )}
+
+        <footer className="muted">Objetivo Babel 2026 · React + TypeScript · Desarrollado con apoyo de Claude</footer>
+      </div>
     </div>
   )
 }
