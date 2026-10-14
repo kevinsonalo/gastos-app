@@ -157,6 +157,19 @@
   - E2E en modo local y contra la API: importar una carpeta, reimportar sin duplicar, borrar todo.
 - **Pendiente:** validar el lector con correos reales de BAC y ajustar las etiquetas si difieren.
 
+### 23. Dashboard con más valor: comparación justa, fijos vs variables, clic para profundizar e insights
+- **Prompt:** "Vamos a darle más valor a este dashboard, dame ideas" (con captura). Luego: "dale con la recomendación".
+- **Hallazgo de Claude antes de proponer:** el "▼ 39.9% vs mes anterior" comparaba 13 días de octubre contra todo setiembre.
+- **Resultado:**
+  - Comparación del mismo período, proyección de cierre y tarjeta de fijos vs variables (fijos inferidos de la historia).
+  - Panel "Lo que dicen tus datos" con reglas explicables, en el dominio y sin dependencias.
+  - Clic en categoría → lista filtrada; clic en un mes → resumen de ese mes; selector de mes en español.
+- **Validación:**
+  - 11 pruebas nuevas.
+  - Con los 254 correos de prueba se detectaron 2 falsos positivos: barbería y verdulería salían como "fijas", y una compra grande de supermercado salía como "inusual" contra el promedio de toda la categoría. Se corrigieron exigiendo el mismo día del mes y comparando contra el mismo comercio.
+  - Verificación visual con Playwright.
+- **Aprendizaje:** probar las reglas con datos realistas, no solo con casos de prueba, sacó a la luz errores que las pruebas unitarias no veían.
+
 ---
 
 ## Aprendizajes generales

@@ -89,8 +89,14 @@ export interface MonthSummary {
   count: number
   dailyAverage: number
   topCategory: CategoryTotal | null
-  /** Variación % vs mes anterior; null si el mes anterior fue 0. */
+  /**
+   * Variación % vs el mes anterior; null si el mes anterior fue 0.
+   * En el mes en curso compara el mismo período (días 1..N) para no contrastar
+   * un mes a medias contra uno completo.
+   */
   changeVsPrevious: number | null
+  /** Días comparados (N) si el mes está en curso; null si se comparan meses completos. */
+  comparedDays: number | null
 }
 
 /** Indicadores del dashboard para un mes (YYYY-MM) a la fecha `today` (YYYY-MM-DD). */
@@ -102,11 +108,14 @@ export function monthSummary(
 ): MonthSummary {
   const inMonth = expenses.filter((e) => e.date.startsWith(month))
   const [prev] = lastMonths(month, 2)
-  const prevTotal = total(expenses.filter((e) => e.date.startsWith(prev)))
   const monthTotal = total(inMonth)
 
-  // Si es el mes en curso, promediar sobre los días transcurridos.
-  const elapsed = today.startsWith(month) ? Number(today.slice(8, 10)) : daysInMonth(month)
+  // Si es el mes en curso, promediar sobre los días transcurridos y comparar el mismo período.
+  const isCurrent = today.startsWith(month)
+  const elapsed = isCurrent ? Number(today.slice(8, 10)) : daysInMonth(month)
+  const prevTotal = total(
+    expenses.filter((e) => e.date.startsWith(prev) && (!isCurrent || Number(e.date.slice(8, 10)) <= elapsed)),
+  )
 
   return {
     total: monthTotal,
@@ -115,5 +124,6 @@ export function monthSummary(
     topCategory: totalsByCategory(inMonth, categories)[0] ?? null,
     changeVsPrevious:
       prevTotal > 0 ? roundMoney(((monthTotal - prevTotal) / prevTotal) * 100) : null,
+    comparedDays: isCurrent ? elapsed : null,
   }
 }

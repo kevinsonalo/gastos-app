@@ -5,17 +5,18 @@ export const normalizeText = (text: string) =>
   text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 
 /**
- * Palabras clave de comercios frecuentes en Costa Rica → nombre de categoría por defecto.
+ * Palabras clave de comercios frecuentes en Costa Rica (y nombres genéricos como
+ * "VERDULERIA", "LUZ" o "MEDICINAS") → nombre de categoría por defecto.
  * El orden importa: gana la primera regla que coincide.
  */
 const RULES: Array<[category: string, keywords: string[]]> = [
-  ['Salud', ['farmacia', 'fischel', 'la bomba', 'sucre', 'clinica', 'hospital', 'laboratorio', 'optica']],
-  ['Transporte', ['uber', 'didi', 'indriver', 'gasolinera', 'servicentro', 'delta', 'total energies', 'puma', 'uno', 'parqueo', 'peaje', 'riteve', 'compass']],
-  ['Alimentación', ['automercado', 'auto mercado', 'walmart', 'mas x menos', 'masxmenos', 'pali', 'maxi pali', 'pricesmart', 'fresh market', 'mega super', 'super', 'soda', 'restaurante', 'rest', 'pizza', 'mcdonald', 'burger', 'kfc', 'subway', 'starbucks', 'cafe', 'panaderia', 'carniceria', 'rappi', 'uber eats', 'pedidos ya']],
-  ['Servicios', ['ice', 'kolbi', 'claro', 'liberty', 'tigo', 'cabletica', 'telecable', 'cnfl', 'aya', 'esph', 'jasec', 'coopelesca', 'agua', 'electric']],
-  ['Entretenimiento', ['netflix', 'spotify', 'disney', 'hbo', 'max', 'prime video', 'cinepolis', 'cine', 'steam', 'playstation', 'xbox', 'nintendo', 'youtube']],
-  ['Educación', ['udemy', 'coursera', 'platzi', 'universidad', 'uned', 'libreria', 'colegio', 'escuela', 'curso']],
-  ['Vivienda', ['alquiler', 'condominio', 'ferreteria', 'epa', 'el lagar', 'construplaza', 'pequeño mundo', 'muebles']],
+  ['Salud', ['farmacia', 'fischel', 'la bomba', 'sucre', 'clinica', 'hospital', 'laboratorio', 'optica', 'medicina', 'medicamento']],
+  ['Transporte', ['uber', 'didi', 'indriver', 'gasolinera', 'servicentro', 'delta', 'total energies', 'puma', 'uno', 'parqueo', 'peaje', 'riteve', 'compass', 'taxi', 'gasolina']],
+  ['Alimentación', ['automercado', 'auto mercado', 'walmart', 'mas x menos', 'masxmenos', 'pali', 'maxi pali', 'pricesmart', 'fresh market', 'mega super', 'super', 'soda', 'restaurante', 'rest', 'pizza', 'mcdonald', 'burger', 'kfc', 'subway', 'starbucks', 'cafe', 'panaderia', 'carniceria', 'rappi', 'uber eats', 'pedidos ya', 'verduleria', 'comida', 'mercado']],
+  ['Servicios', ['ice', 'kolbi', 'claro', 'liberty', 'tigo', 'cabletica', 'telecable', 'cnfl', 'aya', 'esph', 'jasec', 'coopelesca', 'agua', 'electric', 'luz', 'internet', 'telefono', 'celular', 'cable']],
+  ['Entretenimiento', ['netflix', 'spotify', 'disney', 'hbo', 'max', 'prime video', 'cinepolis', 'cine', 'steam', 'playstation', 'xbox', 'nintendo', 'youtube', 'streaming', 'musica', 'videojuego']],
+  ['Educación', ['udemy', 'coursera', 'platzi', 'universidad', 'uned', 'libreria', 'colegio', 'escuela', 'curso', 'matricula', 'libro']],
+  ['Vivienda', ['alquiler', 'condominio', 'ferreteria', 'epa', 'el lagar', 'construplaza', 'pequeño mundo', 'muebles', 'hogar']],
 ]
 
 /**

@@ -88,7 +88,7 @@ input[type='color'] { width: 44px; padding: 2px; height: 38px; }
 
 .dash-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .dash-header h2 { margin: 0; }
-.dash-header input { width: auto; }
+.dash-header input, .dash-header select { width: auto; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
 .stat { display: grid; gap: 4px; }
 .stat-label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
@@ -110,6 +110,30 @@ input[type='color'] { width: 44px; padding: 2px; height: 38px; }
 .col.active .col-bar { background: var(--primary); }
 .col-value { font-size: .65rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .col-label { font-size: .75rem; color: var(--muted); }
+button.col { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; cursor: pointer; border-radius: 6px; }
+button.col:hover .col-bar { background: color-mix(in srgb, var(--primary) 70%, transparent); }
+button.col:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.hint { margin: 8px 0 0; font-size: .75rem; text-align: center; }
+
+/* Dashboard: clic en categoría → lista de gastos filtrada */
+.bar-button { display: block; width: 100%; border: 0; background: transparent; padding: 4px 6px; margin: -4px -6px; box-sizing: content-box; font: inherit; color: inherit; text-align: left; cursor: pointer; border-radius: 8px; }
+.bar-button:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+.bar-button:focus-visible { outline: 2px solid var(--primary); }
+
+.stat-sub { font-size: .78rem; color: var(--muted); }
+
+/* Fijos vs variables */
+.split { height: 10px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--primary) 35%, transparent); margin: 8px 0 4px; }
+.split-fixed { height: 100%; background: var(--primary); transition: width .3s; }
+.split-legend { display: grid; gap: 2px; font-size: .78rem; color: var(--muted); }
+.split-legend .dot { width: 8px; height: 8px; flex-basis: 8px; }
+.split-dot-fixed { background: var(--primary); }
+.split-dot-var { background: color-mix(in srgb, var(--primary) 35%, transparent); }
+
+/* Insights */
+.insights { margin-bottom: 16px; }
+.insights ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.insights li { font-size: .9rem; }
 
 @media (max-width: 800px) {
   .expenses-layout, .dash-grid { grid-template-columns: 1fr; }

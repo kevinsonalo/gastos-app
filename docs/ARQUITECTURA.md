@@ -222,6 +222,18 @@ Almacenamiento: dos claves en `localStorage`, versionadas:
   - Navegación con menú lateral; las pantallas con lógica propia van en `presentation/pages/`.
 - **Consecuencias:** + Agregar otro banco = otra clase que implemente el puerto. + Importación idempotente. − El formato de BAC se infirió de notificaciones típicas: hay que validarlo con correos reales y ajustar las etiquetas si cambian. − La selección de carpeta funciona en Chrome y Edge; en otros navegadores se usa "Elegir archivos".
 
+### ADR-013 · Dashboard con análisis: comparación justa, fijos vs variables e insights
+- **Contexto:** El dashboard solo mostraba totales. El "% vs mes anterior" comparaba un mes a medias contra uno completo y siempre daba una baja engañosa.
+- **Decisión:**
+  - `monthSummary` compara el **mismo período** (días 1..N) cuando el mes está en curso, y expone `comparedDays`.
+  - `domain/services/insights.ts`, puro y determinista (recibe `today`):
+    - `recurringExpenses`: un gasto es **fijo** si aparece exactamente una vez en cada uno de los 3 meses anteriores, con montos parecidos (máx. +60%) y cerca del mismo día (máx. 6 días). Se infiere de los datos; no hay que marcarlo a mano.
+    - `monthBreakdown`: fijos vs variables y **proyección de cierre** = fijos cobrados + fijos pendientes + variables al ritmo diario. Así el alquiler no se multiplica por 30.
+    - `monthInsights`: categoría que más subió o bajó vs el promedio de los 3 meses anteriores en el mismo período (umbral 25% y 5% de peso), gasto inusual (≥2.5× su monto típico; primero el del mismo comercio) y mes más caro del año. No repite una historia ya contada.
+  - El dominio devuelve datos estructurados (`Insight`); el texto y el formato de moneda viven en `presentation`.
+  - Navegación: clic en una categoría abre la lista de gastos filtrada; clic en un mes de la tendencia cambia el resumen. El selector de mes es un `<select>` en español.
+- **Consecuencias:** + Indicadores que no engañan y una proyección realista. + Insights sin IA en tiempo de ejecución: son reglas explicables y probadas. − La detección de fijos necesita 3 meses de historia y puede fallar con cobros irregulares.
+
 Guía de trabajo diario (patrones, convenciones, checklist): [GUIA_BUENAS_PRACTICAS.md](GUIA_BUENAS_PRACTICAS.md). Backend: [api/README.md](../api/README.md).
 
 ## 6. Estructura de carpetas

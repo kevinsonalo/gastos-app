@@ -70,7 +70,15 @@ export default function App({ deps }: Props) {
         {store.status === 'ready' && (
           <main>
             {page === 'dashboard' && (
-              <Dashboard expenses={store.expenses} categories={store.categories} onAddClick={() => setPage('expenses')} />
+              <Dashboard
+                expenses={store.expenses}
+                categories={store.categories}
+                onAddClick={() => setPage('expenses')}
+                onDrillDown={(month, categoryId = '') => {
+                  setFilters({ ...NO_FILTERS, month, categoryId })
+                  setPage('expenses')
+                }}
+              />
             )}
 
             {page === 'expenses' && (

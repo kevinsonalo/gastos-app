@@ -29,6 +29,15 @@ describe('categoryForMerchant', () => {
     ['NETFLIX.COM', 'Entretenimiento'],
     ['KOLBI ICE', 'Servicios'],
     ['SERVICES INC', 'Otros'],
+    ['VERDULERIA', 'Alimentación'],
+    ['TAXI', 'Transporte'],
+    ['MEDICINAS', 'Salud'],
+    ['LUZ', 'Servicios'],
+    ['INTERNET', 'Servicios'],
+    ['STREAMING', 'Entretenimiento'],
+    ['MATRICULA UNIVERSIDAD', 'Educación'],
+    ['ARTICULOS HOGAR', 'Vivienda'],
+    ['ROPA', 'Otros'],
   ])('%s → %s', (merchant, category) => {
     expect(categoryForMerchant(merchant, defaultCategories())?.name).toBe(category)
   })
